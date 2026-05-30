@@ -1,0 +1,5 @@
+.env
+data/problems_parsed.json
+data/problem_urls.json
+__pycache__/
+*.pyc
