@@ -25,11 +25,21 @@ SQL_TITLE_KEYWORDS = [
 
 
 def is_sql_problem(title: str, description: str) -> bool:
-    for kw in SQL_TITLE_KEYWORDS:
+    sql_title_keywords = [
+        "조회하기", "목록 출력", "출력하기",
+        "물고기", "대장균", "자동차 대여", "자동차 평균",
+        "중고거래", "재구매", "상품 별", "가격대 별", "카테고리 별",
+        "진료과별", "월별", "연도별", "노선별", "연도 별", "분기별",
+        "Python 개발자", "잔챙이", "아이콘",
+        "NULL 처리", "DATETIME", "입양 시각",
+    ]
+    for kw in sql_title_keywords:
         if kw in title:
             return True
-    sql_signs = ["SELECT", "FROM", "WHERE", "JOIN", "GROUP BY", "ORDER BY"]
-    count = sum(1 for s in sql_signs if s in description.upper())
+
+    sql_signs = ["Column name", "Type\tNullable", "INTEGER\tFALSE",
+                 "VARCHAR", "SELECT", "FROM\n", "WHERE\n"]
+    count = sum(1 for s in sql_signs if s in description)
     return count >= 2
 
 
