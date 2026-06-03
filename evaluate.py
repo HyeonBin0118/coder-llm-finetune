@@ -147,7 +147,7 @@ def main():
     )
     print(f"\n결과 저장 → {output_path}")
     print("\n=== 완료 ===")
-    print("evaluation/results.json 열어서 직접 비교해봐.")
+    print("evaluation/results.json")
 
 
 if __name__ == "__main__":
