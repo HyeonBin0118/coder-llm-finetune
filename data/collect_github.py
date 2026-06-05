@@ -79,10 +79,29 @@ def get_file_content(repo_full_name: str, file_path: str) -> str:
 
 
 def extract_solution_func(code: str) -> str:
-    match = re.search(r"(def solution\(.*?\n(?:(?:[ \t]+.+\n?)|(?:\n))*)", code)
-    if match:
-        return match.group(1).strip()
-    return ""
+    """solution 함수 전체 추출 (빈 줄 포함)"""
+    lines = code.split('\n')
+    start = None
+    for i, line in enumerate(lines):
+        if re.match(r'^def solution\(', line):
+            start = i
+            break
+    if start is None:
+        return ""
+    
+    result = [lines[start]]
+    for line in lines[start + 1:]:
+        # 최상위 레벨 새 함수/클래스 시작하면 종료
+        if line and not line[0].isspace() and not line.startswith('#'):
+            break
+        result.append(line)
+    
+    # 뒤에 붙은 빈 줄 제거
+    while result and not result[-1].strip():
+        result.pop()
+    
+    func = '\n'.join(result)
+    return func if 'return' in func else ""
 
 
 def normalize_title(title: str) -> str:
