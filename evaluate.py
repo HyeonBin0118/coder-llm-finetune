@@ -4,6 +4,7 @@
 결과: evaluation/results.json
 """
 import json
+import re
 from pathlib import Path
 from openai import OpenAI
 import torch
@@ -14,8 +15,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_MODEL_ID = "Qwen/Qwen2.5-Coder-7B-Instruct"
-FINETUNED_DIR = "output/qwen-coder-finetune"
-DATA_PATH     = "data/dataset_raw.json"
+FINETUNED_DIR = "output/qwen-coder-finetune-v4"
+DATA_PATH     = "data/github_solutions.json"
 OUTPUT_DIR    = Path("evaluation")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -25,7 +26,7 @@ SYSTEM_PROMPT = """당신은 프로그래머스 코딩 테스트 문제를 도�
 client = OpenAI()
 
 
-def make_user_prompt(problem: dict, task: str) -> str:
+def make_user_prompt(problem: dict, task: str, sig: str = "") -> str:
     desc = problem["description"][:500]
     constraints = problem.get("constraints", "")[:200]
     if task == "hint":
@@ -40,6 +41,7 @@ def make_user_prompt(problem: dict, task: str) -> str:
 
 제목: {problem['title']}
 난이도: Level {problem['level']}
+함수 시그니처: {sig}
 문제 설명: {desc}
 제한사항: {constraints}"""
 
@@ -110,9 +112,9 @@ def ask_finetuned(model, tokenizer, user_prompt: str) -> str:
 def main():
     data = json.loads(Path(DATA_PATH).read_text(encoding="utf-8"))
 
-    # Level 1, 2 각 5개씩 선택
-    level1 = [p for p in data if p["level"] == 1][:5]
-    level2 = [p for p in data if p["level"] == 2][:5]
+    # 풀이가 있는 문제만 필터링 후 Level 1, 2 각 5개씩
+    level1 = [p for p in data if p["level"] == 1 and p.get("solutions")][:5]
+    level2 = [p for p in data if p["level"] == 2 and p.get("solutions")][:5]
     test_problems = level1 + level2
     print(f"평가 문제: {len(test_problems)}개")
 
@@ -123,7 +125,15 @@ def main():
         print(f"\n[{i+1}/{len(test_problems)}] {problem['title']} (Level {problem['level']})")
 
         for task in ["hint", "solution"]:
-            user_prompt = make_user_prompt(problem, task)
+            # 시그니처 추출 (solution 태스크용)
+            sig = ""
+            if task == "solution":
+                solutions = problem.get("solutions", [])
+                if solutions:
+                    sig_match = re.search(r'def solution\([^)]*\)', solutions[0])
+                    sig = sig_match.group(0) if sig_match else "def solution(...)"
+
+            user_prompt = make_user_prompt(problem, task, sig)
 
             print(f"  GPT-4o-mini {task} 생성 중...")
             gpt_response = ask_gpt(user_prompt)
@@ -135,19 +145,18 @@ def main():
                 "title": problem["title"],
                 "level": problem["level"],
                 "task": task,
-                "reference": problem.get(task, ""),
+                "reference": problem.get("solutions", [""])[0] if task == "solution" else "",
                 "gpt_response": gpt_response,
                 "finetuned_response": ft_response,
             })
 
-    output_path = OUTPUT_DIR / "results.json"
+    output_path = OUTPUT_DIR / "results_v4.json"
     output_path.write_text(
         json.dumps(results, ensure_ascii=False, indent=2),
         encoding="utf-8"
     )
     print(f"\n결과 저장 → {output_path}")
     print("\n=== 완료 ===")
-    print("evaluation/results.json")
 
 
 if __name__ == "__main__":

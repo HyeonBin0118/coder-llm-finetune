@@ -5,6 +5,7 @@ B안 데이터셋 구성
 - 출력: data/dataset_v2.json
 """
 import json
+import re
 
 RAW_PATH = "data/dataset_raw.json"
 GITHUB_PATH = "data/github_solutions.json"
@@ -28,10 +29,7 @@ def main():
     with open(GITHUB_PATH, encoding="utf-8") as f:
         github_data = json.load(f)
 
-    # title -> github 풀이 매핑
     github_map = {r["title"]: r["solutions"] for r in github_data}
-
-    # title -> raw 데이터 매핑
     raw_map = {r["title"]: r for r in raw_data}
 
     dataset = []
@@ -70,15 +68,18 @@ def main():
             })
             stats["approach"] += 1
 
-        # 정답 코드 (GitHub 풀이 전부)
+        # 정답 코드 (GitHub 풀이 전부 활용)
         if solutions:
             for code in solutions:
+                sig_match = re.search(r'def solution\([^)]*\)', code)
+                sig = sig_match.group(0) if sig_match else "def solution(...)"
+
                 dataset.append({
                     "title": title,
                     "level": level,
                     "task": "solution",
                     "messages": make_messages(
-                        f"다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: {title}\n난이도: Level {level}\n문제 설명:\n{description}",
+                        f"다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: {title}\n난이도: Level {level}\n함수 시그니처: {sig}\n문제 설명:\n{description}",
                         code
                     )
                 })
