@@ -22,6 +22,41 @@ def make_messages(user_content: str, assistant_content: str) -> list:
     ]
 
 
+def is_quality_code(code: str) -> bool:
+    """품질 낮은 코드 필터링"""
+    lines = [l for l in code.split('\n') if l.strip()]
+
+    # 5줄 미만 제거
+    if len(lines) < 5:
+        return False
+
+    # return 없는 코드 제거
+    if 'return' not in code:
+        return False
+
+    # return -1 만 있는 코드 제거 (포기 패턴)
+    if re.search(r'return\s+-1', code) and code.count('return') == 1:
+        return False
+
+    # pass만 있는 코드 제거
+    if re.search(r'^\s+pass\s*$', code, re.MULTILINE) and len(lines) < 5:
+        return False
+
+    # 미정의 변수 패턴 — 흔한 버그 패턴 감지
+    # solution 함수 파라미터에 없는 변수를 바로 사용하는 경우
+    sig_match = re.search(r'def solution\(([^)]*)\)', code)
+    if sig_match:
+        params = [p.strip().split('=')[0].strip() for p in sig_match.group(1).split(',') if p.strip()]
+        # 함수 첫 줄에서 바로 미정의 변수 사용 (dh, dw, color 등 흔한 패턴)
+        body_lines = code.split('\n')[1:4]
+        for line in body_lines:
+            if re.search(r'\b(dh|dw|color|dx|dy|INF|graph)\b', line):
+                if not any(p in line for p in ['=', 'def', '#']):
+                    return False
+
+    return True
+
+
 def main():
     with open(RAW_PATH, encoding="utf-8") as f:
         raw_data = json.load(f)
@@ -29,11 +64,10 @@ def main():
     with open(GITHUB_PATH, encoding="utf-8") as f:
         github_data = json.load(f)
 
-    github_map = {r["title"]: r["solutions"] for r in github_data}
     raw_map = {r["title"]: r for r in raw_data}
 
     dataset = []
-    stats = {"hint": 0, "approach": 0, "solution": 0, "skipped": 0}
+    stats = {"hint": 0, "approach": 0, "solution": 0, "filtered": 0, "skipped": 0}
 
     for item in github_data:
         title = item["title"]
@@ -68,9 +102,13 @@ def main():
             })
             stats["approach"] += 1
 
-        # 정답 코드 (GitHub 풀이 전부 활용)
+        # 정답 코드 (품질 필터링 적용)
         if solutions:
             for code in solutions:
+                if not is_quality_code(code):
+                    stats["filtered"] += 1
+                    continue
+
                 sig_match = re.search(r'def solution\([^)]*\)', code)
                 sig = sig_match.group(0) if sig_match else "def solution(...)"
 
@@ -94,6 +132,7 @@ def main():
     print(f"  힌트:     {stats['hint']}개")
     print(f"  접근법:   {stats['approach']}개")
     print(f"  정답코드: {stats['solution']}개")
+    print(f"  필터링됨: {stats['filtered']}개")
     print(f"  풀이 없어 스킵: {stats['skipped']}개")
     print(f"  총합: {len(dataset)}개")
     print(f"  저장: {OUTPUT_PATH}")

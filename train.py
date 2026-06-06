@@ -7,12 +7,12 @@ import json
 import torch
 from pathlib import Path
 from datasets import Dataset
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, DataCollatorForSeq2Seq
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments
 from peft import LoraConfig, get_peft_model, TaskType
-from trl import SFTTrainer, SFTConfig
+from trl import SFTTrainer
 
 MODEL_ID   = "Qwen/Qwen2.5-Coder-7B-Instruct"
-OUTPUT_DIR = "output/qwen-coder-finetune"
+OUTPUT_DIR = "output/qwen-coder-finetune-v5"
 TRAIN_PATH = "data/train.jsonl"
 VAL_PATH   = "data/val.jsonl"
 MAX_LENGTH = 2048
@@ -41,23 +41,12 @@ def format_messages(example):
     return {"text": text}
 
 
-def tokenize(example, tokenizer):
-    result = tokenizer(
-        example["text"],
-        truncation=True,
-        max_length=MAX_LENGTH,
-        padding=False,
-    )
-    result["labels"] = result["input_ids"].copy()
-    return result
-
-
 def main():
     print("=== QLoRA 파인튜닝 시작 ===")
     print(f"GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
 
-    train_dataset = load_jsonl(TRAIN_PATH).map(format_messages)
-    val_dataset   = load_jsonl(VAL_PATH).map(format_messages)
+    train_dataset = load_jsonl(TRAIN_PATH)
+    val_dataset   = load_jsonl(VAL_PATH)
     print(f"train: {len(train_dataset)}개, val: {len(val_dataset)}개")
 
     bnb_config = BitsAndBytesConfig(
@@ -77,7 +66,7 @@ def main():
         quantization_config=bnb_config,
         device_map="auto",
         trust_remote_code=True,
-        dtype=torch.float16,
+        torch_dtype=torch.float16,
     )
 
     lora_config = LoraConfig(
@@ -92,16 +81,7 @@ def main():
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
 
-    train_tokenized = train_dataset.map(
-        lambda x: tokenize(x, tokenizer),
-        remove_columns=train_dataset.column_names
-    )
-    val_tokenized = val_dataset.map(
-        lambda x: tokenize(x, tokenizer),
-        remove_columns=val_dataset.column_names
-    )
-
-    training_args = SFTConfig(
+    training_args = TrainingArguments(
         output_dir=OUTPUT_DIR,
         num_train_epochs=3,
         per_device_train_batch_size=2,
@@ -111,30 +91,23 @@ def main():
         fp16=False,
         bf16=False,
         logging_steps=10,
-        eval_strategy="steps",
+        evaluation_strategy="steps",
         eval_steps=50,
         save_steps=100,
         save_total_limit=2,
         warmup_steps=50,
         lr_scheduler_type="cosine",
         report_to="none",
-        dataset_text_field="text",
-    )
-
-    data_collator = DataCollatorForSeq2Seq(
-        tokenizer=tokenizer,
-        model=model,
-        padding=True,
-        pad_to_multiple_of=8,
     )
 
     trainer = SFTTrainer(
         model=model,
         args=training_args,
-        train_dataset=train_tokenized,
-        eval_dataset=val_tokenized,
-        processing_class=tokenizer,
-        data_collator=data_collator,
+        train_dataset=train_dataset.map(format_messages),
+        eval_dataset=val_dataset.map(format_messages),
+        tokenizer=tokenizer,
+        max_seq_length=MAX_LENGTH,
+        dataset_text_field="text",
     )
 
     print("학습 시작...")
