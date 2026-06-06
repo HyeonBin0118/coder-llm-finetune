@@ -1,0 +1,27 @@
+# Core ML
+torch==2.1.2+cu118
+torchvision==0.16.2+cu118
+torchaudio==2.1.2+cu118
+
+# Hugging Face
+transformers==4.40.0
+peft==0.10.0
+trl==0.8.6
+accelerate==0.29.0
+bitsandbytes==0.43.0
+datasets==2.19.0
+tokenizers==0.19.1
+safetensors
+
+# 데이터 수집
+playwright
+httpx
+requests
+
+# OpenAI (Knowledge Distillation 교사 모델)
+openai
+
+# 유틸
+python-dotenv
+tqdm
+numpy<2
