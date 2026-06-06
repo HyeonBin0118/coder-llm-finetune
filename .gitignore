@@ -1,5 +1,24 @@
 .env
-data/problems_parsed.json
-data/problem_urls.json
 __pycache__/
 *.pyc
+
+# 학습 결과물 (용량 큼)
+output/
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# 학습 데이터 (재생성 가능)
+data/dataset_raw.json
+data/dataset_v2.json
+data/dataset_failed.json
+data/dataset_validated.json
+data/github_solutions.json
+data/problems_parsed.json
+data/problem_urls.json
+data/train.jsonl
+data/val.jsonl
+
+# 평가 결과 (대용량)
+evaluation/results*.json
