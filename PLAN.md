@@ -123,6 +123,67 @@ v4 잔존 로직 오류 개선을 위해 두 가지 시도:
 5. **"한 번에 한 변수만 변경" 원칙이 실제로 효과가 있다.** 각 변경의 효과를 분리해서 측정할 수 있었기에 어떤 변경이 어떤 효과를 만드는지 정확히 알 수 있었다.
 
 ---
+---
+
+## Phase 6 — Evol-Instruct 데이터 확장 🔄
+
+**목표:** RTX 3060 환경에서 데이터 양을 늘리기 위해 기존 문제를 변형하여 학습 데이터 확장
+
+**근거 논문:** Data-efficient LLM Fine-tuning for Code Generation (arXiv:2504.12687, 2025)
+- 핵심 인사이트: 대량 합성 데이터엔 저품질 샘플이 40~60% 섞여있어 선별이 효과적
+
+**방법 (Evol-Instruct):**
+- 기존 227개 문제 × 변형 3종(제약 추가 / 규모 확장 / 재귀 변환) × 샘플 2개(hint + solution)
+- 예상 결과: 기존 681개 + 약 1,362개 = 총 약 2,043개
+
+**작업 목록:**
+- [x] `data/evol_dataset.py` 작성
+- [ ] evol_dataset.py 실행 완료 → `data/dataset_evol.json` 생성
+- [ ] 기존 dataset_v2.json + dataset_evol.json 병합
+- [ ] train.jsonl / val.jsonl 재생성
+
+---
+
+## Phase 7 — IFD + K-Means 데이터 선별 및 v5 학습 ⏳
+
+**목표:** 논문 방식대로 고품질 샘플만 선별하여 v5 학습, 코드 생성 성능 향상 검증
+
+**방법:**
+1. sentence-transformer로 전체 데이터 임베딩
+2. K-Means(k=10)로 클러스터링
+3. 각 클러스터 내 IFD 점수 계산 (PPL(C|I) / PPL(C))
+4. 클러스터별 상위 40% 샘플 선별
+5. 선별된 데이터로 v5 QLoRA 학습
+
+**핵심 가설 E:** 전체 데이터보다 IFD 기반 선별 40%로 학습한 v5가 v4보다 코드 생성 pass@1이 높다.
+
+**작업 목록:**
+- [ ] `data/ifd_select.py` 작성 (IFD 계산 + K-Means 선별)
+- [ ] IFD 선별 실행 → `data/train_selected.jsonl` 생성
+- [ ] v5 학습 실행
+- [ ] v4 vs v5 비교 평가 (compare_eval.py)
+
+---
+
+## Phase 8 — DPO 데이터 생성 및 학습 ⏳
+
+**목표:** SFT만으로는 구분 못하는 "좋은 코드 vs 나쁜 코드" 선호도 학습으로 코드 품질 향상
+
+**방법:**
+- 각 문제마다 (chosen: 깔끔한 풀이 / rejected: 비효율적인 풀이) 쌍 생성
+- GPT-4o-mini로 자동 생성
+- v5 기반으로 DPO 학습 (trl DPOTrainer 활용)
+
+**핵심 가설 F:** SFT(v5) 대비 DPO 적용 모델이 코드 효율성 및 가독성 평가에서 높은 점수를 받는다.
+
+**작업 목록:**
+- [ ] `data/generate_dpo.py` 작성 (chosen/rejected 쌍 생성)
+- [ ] DPO 데이터 생성 실행 → `data/dataset_dpo.json`
+- [ ] `train_dpo.py` 작성
+- [ ] DPO 학습 실행
+- [ ] v5 vs DPO 모델 비교 평가
+
+---
 
 ## 향후 가능한 방향 (이 프로젝트 범위 외)
 
