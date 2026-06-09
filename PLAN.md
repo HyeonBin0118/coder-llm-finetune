@@ -132,6 +132,12 @@ v4 잔존 로직 오류 개선을 위해 두 가지 시도:
 **근거 논문:** Data-efficient LLM Fine-tuning for Code Generation (arXiv:2504.12687, 2025)
 - 핵심 인사이트: 대량 합성 데이터엔 저품질 샘플이 40~60% 섞여있어 선별이 효과적
 
+**논문 핵심 방법:**
+- K-Means 클러스터링으로 데이터 분포 유지
+- IFD(Instruction Following Difficulty) 점수로 복잡도 측정
+- 전체 40% 선별로 풀 데이터 이상 성능 달성 (66.1% → 66.9%)
+- Dynamic Pack 토크나이징으로 패딩 비율 36% → 15% 감소
+
 **방법 (Evol-Instruct):**
 - 기존 227개 문제 × 변형 3종(제약 추가 / 규모 확장 / 재귀 변환) × 샘플 2개(hint + solution)
 - 예상 결과: 기존 681개 + 약 1,362개 = 총 약 2,043개
