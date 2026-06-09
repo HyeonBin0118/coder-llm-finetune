@@ -19,6 +19,7 @@ data/problems_parsed.json
 data/problem_urls.json
 data/train.jsonl
 data/val.jsonl
+data/dataset_evol.json
 
 # 평가 결과 (대용량)
 evaluation/results*.json
