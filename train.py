@@ -1,21 +1,21 @@
 """
 QLoRA 파인튜닝 스크립트
 모델: Qwen2.5-Coder-7B-Instruct
-데이터: data/train.jsonl, data/val.jsonl
+데이터: data/train_selected.jsonl, data/val.jsonl
 """
 import json
 import torch
 from pathlib import Path
 from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments
-from peft import LoraConfig, get_peft_model, TaskType
+from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
 from trl import SFTTrainer
 
 MODEL_ID   = "Qwen/Qwen2.5-Coder-7B-Instruct"
 OUTPUT_DIR = "output/qwen-coder-finetune-v5"
-TRAIN_PATH = "data/train.jsonl"
+TRAIN_PATH = "data/train_selected.jsonl"
 VAL_PATH   = "data/val.jsonl"
-MAX_LENGTH = 2048
+MAX_LENGTH = 512
 
 
 def load_jsonl(path: str) -> Dataset:
@@ -69,6 +69,8 @@ def main():
         torch_dtype=torch.float16,
     )
 
+    model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
+
     lora_config = LoraConfig(
         task_type=TaskType.CAUSAL_LM,
         r=16,
@@ -84,9 +86,10 @@ def main():
     training_args = TrainingArguments(
         output_dir=OUTPUT_DIR,
         num_train_epochs=3,
-        per_device_train_batch_size=2,
-        per_device_eval_batch_size=2,
-        gradient_accumulation_steps=4,
+        per_device_train_batch_size=1,
+        per_device_eval_batch_size=1,
+        gradient_accumulation_steps=8,
+        gradient_checkpointing=True,
         learning_rate=2e-4,
         fp16=False,
         bf16=False,
