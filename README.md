@@ -4,7 +4,9 @@ GPT-4o-mini(유료 API)로 동작하는 [ai-coding-test-assistant](https://githu
 
 **핵심 질문:** "작은 모델(7B)도 좁은 도메인에서 대형 API(GPT-4o-mini)를 대체할 수 있는가?"
 
-**결과 요약:** 4차례의 반복 실험으로 val loss 63% 감소(0.552→0.203), token accuracy 7.3%p 향상(87.8%→95.1%) 달성. 파라미터 정확도 문제는 완전히 해결. 로직 정확도는 부분 성공. RTX 3060 12GB VRAM 한계로 v4를 최종 모델로 확정. GPT-4o-mini와의 정량 비교 결과, 힌트 태스크에서는 15% 빠른 응답과 유사한 방향성을 보였으나 코드 생성에서는 완전 대체에 실패.
+**현재 상태:** v4 실험 완료 후 논문 기반 데이터 선별 전략(Phase 6~8)으로 개선 진행 중. v5 학습 중.
+
+**v4 결과 요약:** 4차례의 반복 실험으로 val loss 63% 감소(0.552→0.203), token accuracy 7.3%p 향상(87.8%→95.1%) 달성. 파라미터 정확도 문제는 완전히 해결. 로직 정확도는 부분 성공. GPT-4o-mini와의 정량 비교 결과, 힌트 태스크에서는 15% 빠른 응답과 유사한 방향성을 보였으나 코드 생성에서는 완전 대체에 실패.
 
 ---
 
@@ -24,6 +26,8 @@ ai-coding-test-assistant는 프로그래머스 문제를 자동 인식해 힌트
 | 학습 라이브러리 | transformers, peft, trl, accelerate, bitsandbytes | HuggingFace 표준 스택 |
 | 데이터 수집 | Playwright + GitHub REST API | Playwright는 JS 렌더링 문제 해결 / GitHub API는 실제 통과 코드 수집 |
 | 데이터 생성 | GPT-4o-mini (Knowledge Distillation) | 교사 모델로 활용해 학습 데이터 자동 생성 |
+| 데이터 확장 | Evol-Instruct | 기존 문제를 변형해 데이터를 3종(제약 추가/규모 확장/재귀 변환)으로 증강 |
+| 데이터 선별 | IFD + K-Means | 논문 기반 복잡도 측정 + 분포 유지 선별 전략 |
 | GPU | RTX 3060 (12GB) | 로컬 학습 환경 |
 
 ---
@@ -41,6 +45,14 @@ QLoRA 파인튜닝 (Qwen2.5-Coder-7B-Instruct)
 v1 → v2 → v3 → v4: 한 번에 한 변수씩 변경하며 비교 평가
     ↓
 GPT-4o-mini vs v4 정량 비교 (응답 시간 + 품질)
+    ↓
+[Phase 6] Evol-Instruct로 데이터 확장 (681개 → 3,848개)
+    ↓
+[Phase 7] IFD + K-Means로 고품질 40% 선별 (3,463개 → 1,381개)
+    ↓
+v5 학습 (진행 중)
+    ↓
+[Phase 8] DPO 데이터 생성 (chosen/rejected 쌍 227개) → DPO 학습 예정
 ```
 
 ---
@@ -245,21 +257,15 @@ GitHub 수집 코드 중 품질이 낮은 코드를 제거했다.
 
 기존 `description[:800]`(800자 자르기) → 전체 description 사용 (평균 1,500~3,000자).
 
-의도: 모델이 문제 조건을 더 충분히 학습.
-
 ### 중단 이유 — RTX 3060 12GB VRAM 한계
-
-description 길이를 늘리자 시퀀스 길이가 증가해 메모리 사용량이 급증했다. 다양한 설정을 시도했으나 모두 한계에 부딪혔다.
 
 | 설정 | 결과 |
 |---|---|
 | description 전체 + batch=2 | **OOM** (42GB 필요, 가용 12GB) |
 | description 1500자 + batch=2 | **OOM** (42GB 필요) |
-| description 800자 + batch=1, gradient_accumulation=8 | 학습 가능하나 **약 100시간 소요 예상** (1스텝당 약 7분) |
+| description 800자 + batch=1, gradient_accumulation=8 | 학습 가능하나 **약 100시간 소요 예상** |
 
-**판단:** batch size를 줄여 메모리는 확보할 수 있으나, 학습 시간이 비현실적으로 길어진다. RTX 3060 12GB는 7B 모델 + 긴 시퀀스 학습에 명확한 하드웨어 상한이 있다.
-
-**결론:** v4를 최종 모델로 확정. description 길이 확장으로 얻을 수 있는 추가 개선보다 하드웨어 비용/시간이 더 크다고 판단했다.
+**판단:** 하드웨어 한계로 추가 개선의 비용/효과 비율이 떨어진다고 판단. **논문 기반 데이터 선별 전략(Phase 6~7)으로 방향 전환.**
 
 ---
 
@@ -277,8 +283,6 @@ v4 파인튜닝 모델을 실제 서비스에 연결하기 전에, GPT-4o-mini�
 | 접근법 | 9,619ms | 32,837ms | GPT **3.4배 빠름** |
 | 정답 코드 | 8,206ms | 11,703ms | GPT **43% 빠름** |
 
-힌트 태스크에서는 로컬 모델이 더 빠르다. 접근법은 로컬 모델이 `max_new_tokens=512` 제한까지 길게 생성하는 경향이 있어 느리게 측정됐다.
-
 ### 품질 비교
 
 | 항목 | GPT-4o-mini | 로컬 v4 |
@@ -289,31 +293,93 @@ v4 파인튜닝 모델을 실제 서비스에 연결하기 전에, GPT-4o-mini�
 | 코드 방향 맞음 | 6 / 10 | 2 / 10 |
 | API 비용 | 유료 | **0원** |
 
-**힌트 태스크:** 방향성은 맞으나 구체성이 부족하다. GPT 대비 약 74% 수준.
-
-**정답 코드 태스크:** 파라미터는 대부분 맞추나(80%) 함수 내부 로직이 틀린 케이스가 많다. 완전 정답 0개로 GPT 완전 대체는 불가능하다.
-
 ### 결론
 
 > 힌트 기능에서는 GPT 대비 15% 빠른 응답과 유사한 방향성을 보였으나, 코드 생성에서는 7B 모델의 한계로 완전 대체에 실패했다. 데이터 품질과 모델 크기가 코드 생성 품질의 핵심 변수임을 실험으로 확인했다.
 
-GPT-4o-mini를 완전히 대체하려면 더 큰 모델(13B+) 또는 코드 실행 기반 데이터 검증 파이프라인이 필요하다. 현재 RTX 3060 12GB 환경에서는 한계가 있다. 다만 힌트 태스크에 한정하면, 응답 속도와 0원의 비용 측면에서 로컬 모델의 실용 가능성을 확인했다.
+---
+
+## Phase 6 — Evol-Instruct 데이터 확장
+
+RTX 3060 환경에서 데이터를 더 늘리기 위해 논문에서 제안한 Evol-Instruct 방식을 적용했다.
+
+**참고 논문:** Data-efficient LLM Fine-tuning for Code Generation (arXiv:2504.12687, 2025)
+
+기존 227개 문제를 GPT-4o-mini로 3가지 방향으로 변형했다:
+- **제약 추가:** "반복문 사용 금지" 등 새로운 조건 부여
+- **규모 확장:** 입력 크기를 10~100배로 키워 시간복잡도 조건 추가
+- **재귀 변환:** 재귀 함수만 사용하도록 조건 변경
+
+| 항목 | 수치 |
+|---|---|
+| 원본 데이터 | 681개 |
+| 변형 생성 | 1,362개 (227문제 × 3종 × 2샘플) |
+| 병합 후 총합 | **3,848개** |
+
+---
+
+## Phase 7 — IFD + K-Means 데이터 선별 및 v5 학습
+
+대량 합성 데이터에는 저품질 샘플이 40~60% 포함된다는 논문의 핵심 인사이트를 적용해, IFD 점수로 복잡도를 측정하고 K-Means로 분포를 유지하면서 상위 40%만 선별했다.
+
+### IFD(Instruction Following Difficulty) 점수
+
+모델이 지시문 없이 코드를 생성한 perplexity(PPL)와 지시문 있을 때 perplexity의 비율로 복잡도를 측정한다. 값이 높을수록 모델이 어렵게 느끼는 샘플 = 학습 가치가 높은 샘플이다.
+
+```
+IFD(C|I) = PPL(C|I) / PPL(C)
+```
+
+### 선별 과정
+
+1. sentence-transformer(`all-MiniLM-L6-v2`)로 전체 데이터 임베딩
+2. K-Means(k=10)로 10개 클러스터 생성 (데이터 분포 유지)
+3. 각 클러스터 내 IFD 점수 계산 (v4 모델 기준, 4bit 양자화)
+4. 클러스터별 상위 40% 선별
+
+| 항목 | 수치 |
+|---|---|
+| 입력 데이터 | 3,463개 (train split) |
+| 선별 후 | **1,381개 (39.9%)** |
+| 태스크 분포 | solution 973개 / hint 213개 / approach 195개 |
+
+> **RTX 3060 환경 적응:** 논문은 A100에서 실험했으나 VRAM 12GB 제약으로 IFD 계산 시 4bit 양자화 적용. 선별 방식은 논문과 동일.
+
+**핵심 가설 E:** IFD 기반 선별 40%로 학습한 v5가 v4보다 코드 생성 pass@1이 높다. *(검증 중)*
+
+---
+
+## Phase 8 — DPO 데이터 생성 및 학습 (예정)
+
+SFT만으로는 "맞는 답들 중에서 더 좋은 답"을 구분하지 못한다는 한계를 DPO(Direct Preference Optimization)로 보완한다.
+
+각 문제마다 GPT-4o-mini로 (chosen: 깔끔하고 효율적인 풀이 / rejected: 동작하지만 비효율적인 풀이) 쌍을 생성했다.
+
+| 항목 | 수치 |
+|---|---|
+| DPO 쌍 생성 | **227개** (문제당 1쌍) |
+| chosen | Pythonic하고 시간복잡도 최적화된 코드 |
+| rejected | 중첩 반복문, 불필요한 변수 등 비효율적 코드 |
+
+**핵심 가설 F:** SFT(v5) 대비 DPO 적용 모델이 코드 효율성 및 가독성 평가에서 높은 점수를 받는다. *(미검증)*
 
 ---
 
 ## 핵심 발견 (이 프로젝트에서 배운 것)
 
-1. **train/val loss는 실제 품질을 보장하지 않는다.** v1은 val loss 0.552로 학습이 잘 된 것처럼 보였으나 실제 출력은 사용 불가 수준이었다. 학습 지표와 정성 평가는 항상 별개로 봐야 한다.
+1. **train/val loss는 실제 품질을 보장하지 않는다.** v1은 val loss 0.552로 학습이 잘 된 것처럼 보였으나 실제 출력은 사용 불가 수준이었다.
 
-2. **데이터 품질 > 데이터 양.** v1(681개) → v2(2,783개)에서 양은 4배 늘렸으나 품질 문제(정규식 버그로 코드 잘림)로 실제 개선은 거의 없었다. 정규식 한 줄을 고친 v3에서 비로소 개선이 나타났다.
+2. **데이터 품질 > 데이터 양.** v1(681개) → v2(2,783개)에서 양은 4배 늘렸으나 품질 문제로 실제 개선은 거의 없었다. 정규식 한 줄을 고친 v3에서 비로소 개선이 나타났다.
 
-3. **프롬프트 설계가 학습 효율에 결정적이다.** v3 → v4에서 함수 시그니처 한 줄만 추가했는데 val loss가 23% 감소하고 파라미터 오류가 완전히 사라졌다. 모델이 학습할 정보가 프롬프트에 충분히 포함되었는지 점검하는 것이 중요하다.
+3. **프롬프트 설계가 학습 효율에 결정적이다.** v3 → v4에서 함수 시그니처 한 줄만 추가했는데 val loss가 23% 감소하고 파라미터 오류가 완전히 사라졌다.
 
-4. **하드웨어 한계는 명확히 인식하고 적절한 시점에 종료해야 한다.** v5 시도는 가설은 합리적이었으나 RTX 3060 12GB로는 학습이 비현실적이었다. 더 큰 GPU 없이는 추가 개선의 비용/효과 비율이 떨어진다고 판단해 v4에서 종료했다.
+4. **하드웨어 한계는 명확히 인식하고 적절한 시점에 전략을 전환해야 한다.** 무작정 데이터를 늘리거나 시퀀스를 길게 하는 대신, 논문 기반 데이터 선별 전략으로 방향을 바꿨다.
 
-5. **태스크별로 실용성을 분리해 판단해야 한다.** 코드 생성은 GPT를 대체하지 못했지만, 힌트 태스크는 속도·비용 측면에서 실용 가능성이 있었다. "전부 대체" 또는 "전부 실패"가 아니라 태스크 단위로 나눠 보면 작은 모델의 활용 지점이 보인다.
+5. **태스크별로 실용성을 분리해 판단해야 한다.** 코드 생성은 GPT를 대체하지 못했지만, 힌트 태스크는 속도·비용 측면에서 실용 가능성이 있었다.
 
 6. **"한 번에 한 변수만 변경" 원칙은 실제로 효과가 있다.** 각 버전에서 정확히 무엇을 바꿨는지 분리했기 때문에 어떤 변경이 어떤 효과를 만드는지 정확히 측정할 수 있었다.
+
+7. **논문 방법론을 제한된 환경에 맞게 적용하는 능력.** A100 기준 논문을 RTX 3060에서 재현하기 위해 4bit 양자화, gradient checkpointing 등 환경 최적화를 직접 해결했다.
 
 ---
 
@@ -328,6 +394,8 @@ GPT-4o-mini를 완전히 대체하려면 더 큰 모델(13B+) 또는 코드 실�
 | 파라미터 오류 (v3 실패의 원인) | 학습 프롬프트에 함수 시그니처 명시 |
 | 추론 시 vLLM Windows 미지원 | transformers 직접 로드 방식으로 전환 (eval_env 분리) |
 | peft 버전 불일치 (`alora_invocation_tokens` 등) | `adapter_config.json`에서 신버전 전용 키 제거 |
+| IFD 계산 시 GPU/CPU 텐서 충돌 | 4bit 양자화 + accelerate 버전 다운그레이드로 해결 |
+| v5 학습 시 OOM (VRAM 40GB 할당 오류) | gradient_checkpointing + prepare_model_for_kbit_training 적용 |
 
 ---
 
@@ -341,12 +409,17 @@ coder-llm-finetune/
 │   ├── generate_dataset.py      # GPT-4o-mini로 힌트/접근법/정답 생성 (v1)
 │   ├── collect_github.py        # GitHub 공개 레포에서 정답 코드 수집
 │   ├── build_dataset.py         # GPT 힌트/접근법 + GitHub 정답 결합
-│   └── convert_to_jsonl.py      # Hugging Face 학습 포맷 변환
+│   ├── convert_to_jsonl.py      # Hugging Face 학습 포맷 변환
+│   ├── evol_dataset.py          # Evol-Instruct 데이터 확장 (Phase 6)
+│   ├── merge_dataset.py         # 기존 데이터 + evol 데이터 병합 (Phase 6)
+│   ├── ifd_select.py            # IFD + K-Means 데이터 선별 (Phase 7)
+│   └── generate_dpo.py          # DPO chosen/rejected 쌍 생성 (Phase 8)
 ├── output/
 │   ├── qwen-coder-finetune/     # v1 LoRA 가중치
 │   ├── qwen-coder-finetune-v2/  # v2 LoRA 가중치
 │   ├── qwen-coder-finetune-v3/  # v3 LoRA 가중치
-│   └── qwen-coder-finetune-v4/  # v4 LoRA 가중치 (최종 모델)
+│   ├── qwen-coder-finetune-v4/  # v4 LoRA 가중치
+│   └── qwen-coder-finetune-v5/  # v5 LoRA 가중치 (학습 중)
 ├── evaluation/
 │   ├── results_epoch3_baseline.json  # v1 비교 평가 결과
 │   ├── results.json                  # v2/v3 비교 평가 결과
@@ -398,7 +471,7 @@ python data/convert_to_jsonl.py
 # 7. trl 패치 (Windows 필수)
 python patch.py
 
-# 8. 파인튜닝
+# 8. 파인튜닝 (v1~v4)
 python train.py
 
 # 9. 비교 평가 (학습 단계)
@@ -406,6 +479,19 @@ python evaluate.py
 
 # 10. GPT vs v4 정량 비교 (Phase 5)
 python compare_eval.py
+
+# 11. Evol-Instruct 데이터 확장 (Phase 6)
+python data/evol_dataset.py
+python data/merge_dataset.py
+
+# 12. IFD + K-Means 데이터 선별 (Phase 7)
+python data/ifd_select.py
+
+# 13. v5 파인튜닝 (Phase 7)
+python train.py  # TRAIN_PATH = data/train_selected.jsonl
+
+# 14. DPO 데이터 생성 (Phase 8)
+python data/generate_dpo.py
 ```
 
 ---
@@ -416,6 +502,22 @@ python compare_eval.py
 - NVIDIA GPU (VRAM 12GB 이상 권장)
 - CUDA 11.8
 - Python 3.11
+
+---
+
+## 참고 논문 및 출처
+
+- **Data-efficient LLM Fine-tuning for Code Generation**
+  Weijie Lv et al., arXiv:2504.12687 (2025)
+  https://arxiv.org/abs/2504.12687
+  https://github.com/Kyle-Lyu/data-efficient-finetuning
+
+- **Finetune-RAG: Fine-Tuning Language Models to Resist Hallucination in RAG**
+  Zhan Peng Lee et al., arXiv:2505.10792 (2025)
+  https://arxiv.org/abs/2505.10792
+  https://github.com/Pints-AI/Finetune-Bench-RAG
+
+---
 
 ## 라이선스
 
