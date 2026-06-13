@@ -20,8 +20,7 @@ RTX 3060 12GB 단일 GPU 환경에서 Qwen2.5-Coder-7B-Instruct를 QLoRA로 파�
 
 - **4차례 반복 실험(v1→v4)** 으로 val loss 63% 감소, 파라미터 정확도 문제 완전 해결
 - **GPT-4o-mini 정량 비교:** 힌트 태스크에서 응답 속도 15% 우위, 코드 생성에서는 완전 대체 실패
-- **논문 기반 개선(v5, 진행 중):** Evol-Instruct로 데이터 확장(681→3,848) 후 IFD+K-Means로 고품질 40% 선별(1,381개)
-
+- **논문 기반 개선(v5 완료):** Evol-Instruct로 데이터 확장(681→3,848) 후 IFD+K-Means로 고품질 40% 선별(1,381개), train loss 89% 감소(1.23→0.13), val loss 0.222 달성
 ---
 
 ## 기술 스택
@@ -104,13 +103,14 @@ DPO (chosen/rejected) 학습
 |---|---|---|
 | 데이터 확장 | Evol-Instruct (제약/규모/재귀 변형) | 681 → 3,848개 |
 | 데이터 선별 | IFD 점수 + K-Means(k=10) 상위 40% | 3,463 → 1,381개 (39.9%) |
-| v5 학습 | 선별 데이터로 QLoRA | 진행 중 |
-
+| v5 학습 | 선별 데이터로 QLoRA (34시간) | train loss 0.13, val loss 0.222 ✅ |
 IFD(Instruction Following Difficulty) = `PPL(C|I) / PPL(C)`. 값이 높을수록 모델이 어렵게 느끼는 고난도 샘플로, 학습 가치가 높다. K-Means로 유형별 분포를 유지하면서 클러스터별 상위 40%를 선별한다.
 
 ### DPO (진행 중)
 
 SFT가 구분하지 못하는 "정답 중 더 나은 코드"를 학습. GPT-4o-mini로 chosen(효율적 풀이)/rejected(비효율적 풀이) 227쌍 생성 완료. v5 기반 DPO 학습 예정.
+
+> v4 vs v5 코드 생성 품질 비교 평가 진행 중 (`compare_v4_v5.py`)
 
 ---
 
