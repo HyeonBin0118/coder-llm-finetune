@@ -21,7 +21,7 @@ GPT-4o-mini(유료 API)로 동작하는 ai-coding-test-assistant를 도메인 �
 | 4 | 추가 개선 시도 및 한계 확인 | ✅ |
 | 5 | GPT-4o-mini vs v4 비교 평가 | ✅ |
 | 6 | Evol-Instruct 데이터 확장 | ✅ |
-| 7 | IFD + K-Means 선별 및 v5 학습 | 🔄 |
+| 7 | IFD + K-Means 선별 및 v5 학습 | ✅ |
 | 8 | DPO 데이터 생성 및 학습 | 🔄 |
 
 ---
@@ -175,7 +175,13 @@ solution 프롬프트에 함수 시그니처 한 줄 추가.
 | gradient accumulation | 4 | 8 |
 | gradient checkpointing | ❌ | ✅ |
 
-**핵심 가설 E:** IFD 선별 40%로 학습한 v5가 전체 데이터 v4보다 코드 생성 pass@1이 높다. → 검증 중
+### v5 학습 결과
+- train loss: 1.23 → **0.13** (89% 감소)
+- val loss: 0.451 → **0.222** (51% 감소)
+- 학습 시간: **34시간 18분** (RTX 3060 기준)
+
+**핵심 가설 E:** IFD 선별 40%로 학습한 v5가 전체 데이터 v4보다 코드 생성 pass@1이 높다.
+→ **검증 예정 (compare_v4_v5.py)**
 
 ---
 
