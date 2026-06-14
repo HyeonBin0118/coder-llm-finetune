@@ -22,7 +22,7 @@ GPT-4o-mini(유료 API)로 동작하는 ai-coding-test-assistant를 도메인 �
 | 5 | GPT-4o-mini vs v4 비교 평가 | ✅ |
 | 6 | Evol-Instruct 데이터 확장 | ✅ |
 | 7 | IFD + K-Means 선별 및 v5 학습 | ✅ |
-| 8 | DPO 데이터 생성 및 학습 | 🔄 |
+| 8 | DPO 데이터 생성 및 학습 | ✅ |
 
 ---
 
@@ -180,8 +180,6 @@ solution 프롬프트에 함수 시그니처 한 줄 추가.
 - val loss: 0.451 → **0.222** (51% 감소)
 - 학습 시간: **34시간 18분** (RTX 3060 기준)
 
-**핵심 가설 E:** IFD 선별 40%로 학습한 v5가 전체 데이터 v4보다 코드 생성 pass@1이 높다.
-
 ### v4 vs v5 비교 평가 결과
 
 **스크립트:** `compare_v4_v5.py` / **결과:** `evaluation/compare_v4_v5.json`
@@ -208,14 +206,32 @@ v5는 MAX_LENGTH=512로 학습했는데, 학습 시퀀스가 짧아지면서 EOS
 ## Phase 8 — DPO 학습
 
 ### 배경
-SFT는 "정답이 무엇인가"는 학습하지만 "정답 중 어느 쪽이 더 좋은가"는 구분 못함. DPO(Direct Preference Optimization)가 이 간극을 채움.
+SFT는 "정답이 무엇인가"는 학습하지만 "정답 중 어느 쪽이 더 좋은가"는 구분 못함. DPO(Direct Preference Optimization)가 이 간극을 채운다. 같은 정답이어도 더 Pythonic하고 효율적인 코드를 선호하도록 모델을 학습시킨다.
 
 ### 데이터 생성
 GPT-4o-mini로 227개 chosen/rejected 쌍 생성:
 - chosen: 깔끔하고 Pythonic한 풀이 (시간복잡도 최적화)
 - rejected: 동작하지만 비효율적인 풀이 (반복문 중첩, 불필요한 변수)
 
-**핵심 가설 F:** SFT(v5) 대비 DPO 적용 모델이 코드 효율성·가독성 평가에서 높은 점수를 받는다. → 미검증
+### DPO 학습 결과
+
+| 항목 | 값 |
+|---|---|
+| 학습 데이터 | chosen/rejected 204쌍 |
+| 학습 시간 | 54분 42초 |
+| train loss | 0.683 → **0.587** (14% 감소) |
+| rewards/accuracies | 0.70 → **0.925** (92.5%) |
+| rewards/margins | 0.020 → **0.242** (12배 증가) |
+
+**rewards/accuracies 92.5%:** 모델이 10쌍 중 9쌍에서 chosen(좋은 코드)에 더 높은 확률을 부여함. DPO 학습이 효과적으로 선호도를 학습했음을 확인.
+
+**rewards/margins 0.242:** chosen과 rejected의 log probability 차이. 학습 초반 0.020에서 12배 증가해, 모델이 두 코드의 품질 차이를 명확히 구분하게 됐음을 나타냄.
+
+### 트러블슈팅 — trl 버전 이슈
+trl 0.8.6, 0.9.6에서 4bit 양자화 모델과의 호환성 문제(NoneType 오류, 텐서 크기 불일치)가 지속 발생. trl 0.11.4로 업그레이드 후 해결. DPO 전용 가상환경(`dpo_env`) 분리 운영.
+
+**핵심 가설 F:** SFT(v5) 대비 DPO 적용 모델이 코드 효율성·가독성 평가에서 높은 점수를 받는다.
+→ rewards/accuracies 92.5%로 선호도 학습 확인. 실제 코드 품질 개선 여부는 추가 평가 필요.
 
 ---
 
@@ -235,6 +251,8 @@ GPT-4o-mini로 227개 chosen/rejected 쌍 생성:
 
 7. **논문 방법론을 제한된 환경에 맞게 적용하는 능력.** A100 기준 논문을 RTX 3060에서 재현하기 위해 4bit 양자화, gradient checkpointing 등 환경 최적화를 직접 해결.
 
+8. **라이브러리 버전 호환성 문제도 실험의 일부다.** trl 0.8.6~0.9.6에서 4bit 모델과의 충돌을 디버깅하며 0.11.4로 해결. 환경 분리(`dpo_env`)로 기존 파이프라인 보호.
+
 ---
 
 ## 트러블슈팅 요약
@@ -251,13 +269,15 @@ GPT-4o-mini로 227개 chosen/rejected 쌍 생성:
 | sentence-transformers 버전 충돌 (transformers 5.x) | sentence-transformers==2.7.0 + transformers==4.40.0 다운그레이드 |
 | 4bit 모델 OOM (IFD 계산 시) | accelerate==0.27.2 다운그레이드 |
 | gradient checkpointing + 4bit 충돌 | `prepare_model_for_kbit_training()` 적용 |
+| DPO NoneType 오류 (trl 0.8.6~0.9.6) | trl==0.11.4로 업그레이드 + dpo_env 분리 |
+| DPO 텐서 크기 불일치 (trl utils.py) | trl 버전 업그레이드로 근본 해결 |
 
 ---
 
 ## 향후 가능한 방향 (이 프로젝트 범위 외)
 
 - ai-coding-test-assistant에 v5/DPO 모델 연결 (FastAPI 로컬 서빙)
-- GPT-4o-mini vs v5 응답속도/비용 비교 측정
+- GPT-4o-mini vs DPO 모델 코드 품질 비교 평가
 - 모델 가중치 허깅페이스 Hub 업로드
 - 코드 실행 기반 데이터 검증 파이프라인 구축
 - 더 큰 모델/GPU 환경에서 description 전체 학습 재시도
