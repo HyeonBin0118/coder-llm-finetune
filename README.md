@@ -12,17 +12,21 @@ RTX 3060 12GB 단일 GPU 환경에서 Qwen2.5-Coder-7B-Instruct를 QLoRA로 파�
 
 ## 결과 요약
 
+![버전별 성능 추이](evaluation/version_growth.png)
+
 | 항목 | v1 | v4 | v5 | DPO |
 |---|---|---|---|---|
 | val loss | 0.552 | 0.203 | 0.222 | - |
-| token accuracy | 87.8% | 95.1% | - | - |
+| token accuracy | 87.8% | 91.7%* | **94.1%** | - |
 | 파라미터 정확도 | 실패 | 8/10 | **10/10** | - |
 | 코드 완전 정답 | 0/10 | 0/10 | **3/10** | 평가 예정 |
 | rewards/accuracies | - | - | - | **92.5%** |
 
+*v4 token accuracy는 동일 `val.jsonl` 기준으로 재측정한 값(91.7%)이다. 과거 기록된 95.1%는 측정 방식이 명확하지 않아, `compute_token_accuracy.py`로 재현 가능한 값으로 대체했다.
+
 - **4차례 반복 실험(v1→v4)** 으로 val loss 63% 감소, 파라미터 정확도 문제 완전 해결
 - **GPT-4o-mini 정량 비교:** 힌트 태스크에서 응답 속도 15% 우위, 코드 생성에서는 완전 대체 실패
-- **논문 기반 개선(v5):** Evol-Instruct 데이터 확장(681→3,848) + IFD+K-Means 40% 선별 → 코드 정답 0→3개, 파라미터 정확도 100% 달성
+- **논문 기반 개선(v5):** Evol-Instruct 데이터 확장(681→3,848) + IFD+K-Means 40% 선별 → 코드 정답 0→3개, 파라미터 정확도 100%, token accuracy 94.1% 달성
 - **DPO 학습 완료:** rewards/accuracies 92.5%, rewards/margins 0.242로 선호도 학습 확인
 
 ---
@@ -72,7 +76,9 @@ DPO (chosen/rejected 227쌍) 학습 → rewards/accuracies 92.5%
 | v1 | 기준 (GPT 생성 데이터) | 681 | 0.552 | 87.8% | ❌ | ❌ |
 | v2 | 정답을 GitHub 통과 코드로 교체 | 2,783 | 0.338 (-39%) | 92.0% | ❌ | ❌ |
 | v3 | 정규식 버그 수정 후 재수집 | 2,796 | 0.263 (-22%) | 93.7% | ❌ | ❌ |
-| v4 | 프롬프트에 함수 시그니처 추가 | 2,796 | **0.203 (-23%)** | **95.1%** | **✅** | ⚠️ |
+| v4 | 프롬프트에 함수 시그니처 추가 | 2,796 | **0.203 (-23%)** | **91.7%*** | **✅** | ⚠️ |
+
+*v4 token accuracy 91.7%는 `compute_token_accuracy.py`로 동일 `val.jsonl` 기준 재측정한 값. v1~v3는 동일 방식으로 재측정하지 않은 과거 기록 값.
 
 각 버전의 변경 의도와 실패 원인 분석은 [PLAN.md](./PLAN.md) 참조.
 
@@ -107,7 +113,7 @@ DPO (chosen/rejected 227쌍) 학습 → rewards/accuracies 92.5%
 |---|---|---|
 | 데이터 확장 | Evol-Instruct (제약/규모/재귀 변형) | 681 → 3,848개 |
 | 데이터 선별 | IFD 점수 + K-Means(k=10) 상위 40% | 3,463 → 1,381개 (39.9%) |
-| v5 학습 | 선별 데이터로 QLoRA (34시간) | train loss 0.13, val loss 0.222 ✅ |
+| v5 학습 | 선별 데이터로 QLoRA (34시간) | train loss 0.13, val loss 0.222, token accuracy 94.1% ✅ |
 
 **v4 vs v5 비교 평가 결과** (동일 문제 10개 기준, `compare_v4_v5.py`)
 
@@ -119,6 +125,14 @@ DPO (chosen/rejected 227쌍) 학습 → rewards/accuracies 92.5%
 | solution 응답 시간 | 13,767ms | 119,721ms* |
 
 *응답 시간 증가 원인: MAX_LENGTH=512 학습으로 EOS 생성 타이밍 미학습. 실서비스 적용 시 max_new_tokens=256으로 제한하면 해결 가능.
+
+**v4 vs v5 token accuracy 재평가** (`compute_token_accuracy.py`, 동일 `val.jsonl` 385개 기준)
+
+| 항목 | v4 | v5 |
+|---|---|---|
+| token accuracy | 91.7% | **94.1%** |
+
+기존 README/PLAN.md에 기록된 v1~v4 token accuracy는 계산 코드가 프로젝트에 남아있지 않아 재현이 불가능했다. 이에 `compute_token_accuracy.py`를 새로 작성해 v4, v5를 동일 기준(다음 토큰 예측 정확도, 4bit 양자화 forward pass)으로 재측정했다.
 
 ### DPO 학습
 
@@ -152,11 +166,12 @@ coder-llm-finetune/
 │   ├── ifd_select.py            # IFD + K-Means 선별
 │   └── generate_dpo.py          # DPO chosen/rejected 쌍 생성
 ├── output/                      # LoRA 가중치 (v1~v5, dpo)
-├── evaluation/                  # 비교 평가 결과 JSON
+├── evaluation/                  # 비교 평가 결과 JSON + 성능 그래프
 ├── train.py                     # QLoRA 학습 (v1~v5)
 ├── train_dpo.py                 # DPO 학습
 ├── compare_eval.py              # GPT vs 로컬 정량 비교
 ├── compare_v4_v5.py             # v4 vs v5 직접 비교
+├── compute_token_accuracy.py    # v4 vs v5 token accuracy 동일 기준 재평가
 ├── evaluate.py                  # 학습 단계 비교 평가
 ├── patch.py                     # trl 인코딩 패치 (Windows)
 ├── requirements.txt
@@ -198,6 +213,7 @@ python data/merge_dataset.py
 python data/ifd_select.py
 python train.py
 python compare_v4_v5.py
+python compute_token_accuracy.py
 
 # DPO (별도 환경)
 conda create -n dpo_env python=3.11 -y

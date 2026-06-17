@@ -1,0 +1,192 @@
+[
+  {
+    "title": "가장 많이 받은 선물",
+    "level": 1,
+    "sig": "def solution(friends, gifts)",
+    "v4": {
+      "hint": "첫 번째 단계에서는 각 친구의 선물 점수(주여진 선물 개수 - 받은 선물 개수)를 계산하여 저장하세요. 두 번째 단계에서는 모든 친구 간의 관계를 나타내는 그래프를 생성하세요. 세 번째 단계에서는 각 친구에 대해 다른 친구들과의 상호 교환을 고려하여 최종적으로 얻을 수 있는 추가적인 선물 수를 계산하는 로직을 구현하세요. 마지막으로, 모든 친구 중에서 가장 많은 선물을 받을 수 있는 경우를 찾아 반환하면 됩니다.",
+      "hint_ms": 10420,
+      "solution": "def solution(friends, gifts):\n    answer = 0\n    \n    # 각 친구의 선물 점수 계산\n    scores = {}\n    \n    for friend in friends:\n        if friend not in scores:\n            scores[friend] = [0, 0]\n        \n    for gift in gifts:\n        sender, receiver = gift.split()\n        scores[sender][0] += 1\n        scores[receiver][1] += 1\n        \n    max_score = float('-inf')\n    most_gifted_friend = ''\n    \n    for friend, (sent, received) in scores.items():\n        score = sent - received\n        if score > max_score:\n            max_score = score\n            most_gifted_friend = friend\n            \n    return max(scores[most_gifted_friend])\n            \n# print(solution([\"jun\", \"joo\"], [\"jun joo\"]))\n# print(solution([\"mooyang\", \"kim\", \"yang\"], [\"mooyang kim\", \"kim yang\"])) \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c d\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"d e\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b\",\"b c\",\"c a\"]))  \n# print(solution([\"a\",\"b\",\"c\"],[\"a b",
+      "solution_ms": 34250,
+      "param_ok": true
+    },
+    "v5": {
+      "hint": "선물 몇 개를 받을 수 있는지 return 하도록 solution 함수를 완성해주세요.\n\n제한사항\n3 ≤ friends의 길이 ≤ 1,000\nfriends[i]는 i번째 친구의 이름을 나타냅니다.\nfriends[i]는 알파벳 소문자로만 이루어져 있습니다.\nfriends에는 중복된 값이 없습니다.\n3 ≤ friends[i]의 길이 ≤ 10\ngifts의 길이 = friends의 길이 - 1\ngifts[i]는 \"a\" 또는 \"b\"로 이루어진 문자열입니다.\ngifts[i][j]가 \"a\"인 경우, j+1번 친구가 i+1번 친구에게 선물을 보냈다는 것을 의미합니다.\ngifts[i][j]가 \"b\"인 경우, i+1번 친구가 j+1번 친구에게 선물을 보냈다는 것을 의미합니다.\n입출력 예\nfriends\tgifts\tresult\n[\"anuj\", \"maya\", \"robin\"]\t[\"am\", \"mb\", \"ab\"]\t2\n[\"barbara\", \"jenny\", \"josephine\"]\t[\"ba\", \"bj\", \"jj\"]\t4\n입출력 예 설명\n\n입출력 예 #1\n\n다음 달에 anuj는 2번, maya는 1번 선물을 받습니다.\n따라서 anuj가 다음 달에 선물을 2 + 1 = 3개 받게 됩니다.\n마찬가지로 robin은 1번 선물을 받으며, maya는 1번 선물을 줍니다.\n따라서 robin이 다음 달에 선물을 1개, maya가 선물을 1개 받게 됩니다.\n이때, anuj가 가장 많은 선물을 받으므로, 3개를 return 해야 합니다.\n\n입출력 예 #2\n\n다음 달에 barbara는 1번 선물을 받으며, josephine는 1번 선물을 줍니다.\n따라서 barbara가 다음 달에 선물을 1 + 1 = 2개 받게 됩니다.\n마찬가지로 jenny는 1번 선물을 받으며, josephine는 1번 선물을 줍니다.\n따라서 jenny가 다음 �",
+      "hint_ms": 146866,
+      "solution": "def solution(friends, gifts):\n    from collections import defaultdict\n\n    give = defaultdict(int)\n    take = defaultdict(int)\n\n    for g in gifts:\n        a, b = g.split(':')\n        give[a] += 1\n        take[b] += 1\n\n    score = defaultdict(int)\n\n    for f in friends:\n        score[f] = give[f] - take[f]\n\n    max_score = max(score.values())\n    answer = [f for f in friends if score[f] == max_score]\n    \n    return sorted(answer)[0] if len(answer) > 1 else answer[0]",
+      "solution_ms": 44702,
+      "param_ok": true
+    }
+  },
+  {
+    "title": "[PCCP 기출문제] 1번 / 붕대 감기",
+    "level": 1,
+    "sig": "def solution(bandage, health, attacks)",
+    "v4": {
+      "hint": "이 문제는 주어진 시간 내에 몬스터의 공격을 피하면서 붕대 감기를 효과적으로 활용해야 합니다. 각 공격의 시작 및 종료 시간을 고려하여, 붕대 감기를 적용할 적절한 시점에서 치육을 수행하도록 계획하세요. 또한, 몬스터 공격이 중간에 발생했을 경우에도, 다음 공격 전까지 계속 붕대 감기를 유지할 수 있도록 로직을 설계해야 합니다.",
+      "hint_ms": 7501,
+      "solution": "def solution(bandage, health, attacks):\n    answer = 0\n    time = 0\n    for attack in attacks:\n        if attack[0] > time:\n            time += (attack[0]-time) * bandage[1]\n            time += bandage[2]\n\n        damage = attack[1]\n        if time >= damage:\n            time -= damage\n        else:\n            return -1\n\n    time += bandage[1]*bandage[0]+bandage[2]\n    \n    return time",
+      "solution_ms": 7566,
+      "param_ok": true
+    },
+    "v5": {
+      "hint": "100\n1 ≤ 추가 회복량 = y ≤ 100\nhealth의 값은 항상 1 이상입니다.\n1 ≤ health ≤ 1,000,000\nattacks의 길이는 0 이상 100 이하이며, 공격의 개수가 많을 경우 O(n) 시간 복잡도로 해결할 수 있도록 작성해주세요.\n1 ≤ 공격 시간 ≤ 1,000,000\n1 ≤ 피해량 ≤ 1,000,000\n입출력 예\nbandage\thealth(attacks)\tresult\n[9, 3, 5]\t100\t935\n[30, 3, 25]\t40\t875\n[10, 6, 5]\t7\t-1\n입출력 예 설명\n\n입출력 예 #1\n\n아래 사진과 같이 9초 동안 붕대를 감으면 27의 체력을 회복하고, 10초 째에 붕대를 벗었다가 11초부터 20초 동안 붕대를 감으면 60의 체력을 추가로 회복합니다. 이어서 21초 째에 붕대를 벗었다가 22초부터 29초 동안 붕대를 감으면 21의 체력을 회복하고, 30초 째에 붕대를 벗었다가 31초부터 39초 동안 붕대를 감으면 45의 체력을 회복합니다. 40초 째에 붕대를 벗었다가 41초부터 45초 동안 붕대를 감으면 25의 체력을 회복합니다. 이때, 15초 ~ 18초 동안 몬스터의 공격을 받았지만, 15초 ~ 18초 동안의 공격은 14초에 대한 공격으로 취급되므로, 실제로는 14초에 대한 공격을 두 번 받은 것입니다. 따라서, 15초 ~ 18초 동안의 공격을 제외하고 27 + 60 + 21 + 45 + 25 =",
+      "hint_ms": 165692,
+      "solution": "def solution(bandage, health, attacks):\n    time, recovery, bonus = bandage\n    max_health = health\n    current_health = health\n    \n    attack_index = 0\n    consecutive_time = 0\n\n    while current_health > 0:\n        if attack_index < len(attacks) and attacks[attack_index][0] == consecutive_time + 1:\n            damage = attacks[attack_index][1]\n            current_health -= damage\n            attack_index += 1\n            \n            if current_health <= 0:\n                return -1\n        else:\n            current_health += recovery\n            consecutive_time += 1\n            \n            if consecutive_time >= time:\n                current_health += bonus\n                consecutive_time = 0\n                \n            if current_health > max_health:\n                current_health = max_health\n        \n        if consecutive_time >= time:\n            consecutive_time = 0\n\n    return current_health if current_health > 0 else -1",
+      "solution_ms": 80244,
+      "param_ok": true
+    }
+  },
+  {
+    "title": "[PCCE 기출문제] 9번 / 이웃한 칸",
+    "level": 1,
+    "sig": "def solution(board, h, w)",
+    "v4": {
+      "hint": "주어진 칸과 그 인근 칸들을 검사하여 같은 색상인 칸의 수를 세는 방향으로 접근하세요. 먼저, 주어진 칸의 색상을 저장한 후, 해당 칸의 상하좌우 칸을 순회하면서 색상이 일치하는 경우를 세기 위해 조건문을 사용하면 됩니다. 이를 통해 최종적으로 같은 색상인 칸의 개수를 반환하면 됩니다.",
+      "hint_ms": 7157,
+      "solution": "def solution(board, h, w):\n    answer = 0\n\n    for d in range(4) :\n        nh = h+dh[d]\n        nw = w+dw[d]\n\n        if (nh < 0 or nh >= len(board)) or (nw < 0 or nw >= len(board[0])) : continue\n        \n        if board[nh][nw] == board[h][w]:\n            answer += 1\n    \n    return answer",
+      "solution_ms": 6519,
+      "param_ok": true
+    },
+    "v5": {
+      "hint": "주어진 2차원 격자 보드판에서 특정 칸과 이웃한 칸들을 탐색하여 같은 색으로 색칠된 칸의 수를 세는 문제입니다. 이웃한 칸들을 체크할 때는 상하좌우 방향으로 이동하며, 배열의 경계를 초과하지 않도록 조건을 설정해야 합니다. \n\n힌트: \n1. 주어진 칸의 인덱스를 기준으로 상하좌우 이웃한 칸들의 색상을 비교할 때, 인덱스를 직접적으로 사용하여 새로운 인덱스를 계산하세요. \n2. 배열의 크기를 초과하지 않도록 각 방향의 이동량을 적절히 관리하고, 이미 방문한 칸인지 체크하는 것이 중요합니다. \n3. 재귀적 방법이나 큐를 활용한 BFS(너비 우선 탐색)를 통해 이웃한 칸들을 효율적으로 탐색할 수도 있습니다.",
+      "hint_ms": 86987,
+      "solution": "def solution(board, h, w):\n    n = len(board)\n    count = 0\n    dh = [0, 1, -1, 0]\n    dw = [1, 0, 0, -1]\n\n    for i in range(4):\n        h_check, w_check = h + dh[i], w + dw[i]\n        if 0 <= h_check < n and 0 <= w_check < n:\n            if board[h][w] == board[h_check][w_check]:\n                count += 1\n\n    return count",
+      "solution_ms": 53485,
+      "param_ok": true
+    }
+  },
+  {
+    "title": "[PCCE 기출문제] 10번 / 데이터 분석",
+    "level": 1,
+    "sig": "def solution(data, ext, val_ext, sort_by)",
+    "v4": {
+      "hint": "데이터 필터링과 정렬 과정을 명확히 구분하세요. 먼저 `ext` 값에 따라 데이터를 필터링한 후, `sort_by` 기준으로 정렬하는 방향으로 접근하면 됩니다. 각 단계에서 필요한 비교 연산자를 사용하여 조건을 체크하고, 결과를 반환하는 로직을 구현하세요.",
+      "hint_ms": 5770,
+      "solution": "def solution(data, ext, val_ext, sort_by):\n    answer = []\n    \n    for i in range(len(data)):\n        if data[i][ext-1] < val_ext:\n            answer.append(data[i])\n            \n    answer.sort(key=lambda x:x[sort_by - 1])\n        \n    return answer",
+      "solution_ms": 4691,
+      "param_ok": true
+    },
+    "v5": {
+      "hint": "데이터를 필터링하고 정렬하는 과정을 거쳐야 합니다. 먼저 주어진 데이터에서 특정 조건(ext와 val_ext)을 만족하는 데이터를 필터링한 후, 정렬 기준(sort_by)에 따라 정렬하는 방법을 생각해보세요. Python의 내장 함수나 커스텀 정렬 알고리즘을 활용할 수 있습니다. \n\n힌트를 통해 접근법을 더 자세히 알아보세요! → [접근법 확장] \n- 데이터 필터링: 조건을 만족하는 데이터를 선택하기 위해 if 문을 사용하거나 list comprehension을 활용하세요.\n- 정렬: 파이썬의 sorted() 함수 또는 각 요소를 직접 비교하여 정렬 로직을 구현하세요. 정렬 기준에 따라 key 매개변수를 활용하면 유연하게 정렬할 수 있습니다. \n\n마지막으로, 결과를 반환할 때는 원본 데이터 형식과 일치하도록 변환하는 것이 중요합니다. → [결과 형식 확인] \n\n이렇게 단계별로 접근하면 문제를 해결할 수 있습니다. 각 단계마다 테스트 케이스를 작성하여 진행하면서 오류를 디버깅하세요. → [테스트 케이스 작성] \n\n기억하실 점은 데이터 처리 시 효율성을 고려하고, 가능한 간단한 방법으로 문제를 해결하는 것이 중요하다는 것입니다. → [효율성 고려] \n\n그럼 이제 문제를 풀어보세요! → [문제 풀기] \n\n(참고: 데이터 크기가 작으므로 시간 복잡도 O(n log n)까지의 정렬 방식이 적합하며 공간 복잡도는 O(n)으로 제한됩니다.) → [복잡도 분석] \n\n문제를 잘 못 해결할 경우, 접근법을 단계별로 나누어 이해하고 힌트를 천천히 확인하세요. → [힌트 단계별] \n\n행운을 빕니다! → [행운을 빕니다] \n\n(PS: 다른 접근법이나 추가적인 질문이 있으시면 언제든지 물어보세요!) → [추가 질문] \n\n(PPS: 최적화된 솔루션을 찾기 위해 여러 방법을 시도해 보세요. 예",
+      "hint_ms": 186421,
+      "solution": "def solution(data, ext, val_ext, sort_by):\n    answer = []\n    \n    for d in data :\n        if d[data.index(ext)] < val_ext :\n            answer.append(d)\n\n    answer.sort(key=lambda x : x[sort_by])\n    \n    return answer\n\n# print(solution([[1, 20300104, 100, 80], [2, 20300804, 847, 37], [3, 20300401, 10, 8]], 2, 20300501, 3)) # [[3, 20300401, 10, 8], [1, 20300104, 100, 80]]\n# print(solution([[1, 20300104, 100, 80], [2, 20300804, 847, 37], [3, 20300401, 10, 8]], 3, 10, 1)) # [[3, 20300401, 10, 8]] \n# print(solution([[1, 20300104, 100, 80], [2, 20300804, 847, 37], [3, 20300401, 10, 8]], 1, 2, 2)) # [[2, 20300804, 847, 37]] \n# print(solution([[1, 20300104, 100, 80], [2, 20300804, 847, 37], [3, 20300401, 10, 8]], 1, 2, 1)) # [[1, 20300104, 100, 80]] \n# print(solution([[1, 20300104, 100, 80], [2, 20",
+      "solution_ms": 205120,
+      "param_ok": true
+    }
+  },
+  {
+    "title": "달리기 경주",
+    "level": 1,
+    "sig": "def solution(players, callings)",
+    "v4": {
+      "hint": "이 문제는 선수들의 위치를 업데이트하는 과정에서 효율성을 고려해야 합니다. 각 선수의 인덱스를 저장하여 호출되는 시점에서 해당 선수의 위치를 빠르게 찾도록 하세요. 이를 위해 딕셔너리를 사용하면 O(1) 시간 복잡도로 위치 정보를 업데이트할 수 있습니다.",
+      "hint_ms": 6037,
+      "solution": "def solution(players, callings):\n    answer = []\n    \n    for name in callings:\n        idx=players.index(name)-1\n        temp=players[idx]\n        \n        players[idx]=name\n        players[idx+1]=temp\n    \n    return players",
+      "solution_ms": 3882,
+      "param_ok": true
+    },
+    "v5": {
+      "hint": "해설진이 두 번, 3등인 \"mine\" 선수가 2등인 \"poe\" 선수를 추월시켰습니다. 따라서 최종적으로 1부터 5등까지 선수들의 이름은 [\"mumu\", \"kai\", \"mine\", \"soe\", \"poe\"]가 됩니다. \n\n이 문제는 선수들의 위치를 효율적으로 업데이트하는 방법을 묻고 있습니다. 특히, 선수들의 위치를 리스트에서 찾고 교환이 필요한 경우 O(n) 시간 복잡도를 유지하기 위해 해시맵이나 인덱스를 활용하여 최적화할 수 있습니다. 이 문제는 데이터 구조 및 알고리즘 기술을 잘 влад추는 사람에게 적합합니다.",
+      "hint_ms": 80187,
+      "solution": "def solution(players, callings):\n    player_dict = {player: idx for idx, player in enumerate(players)}\n    \n    for calling in callings:\n        current_idx = player_dict[calling]\n        if current_idx > 0:\n            prev_player = players[current_idx - 1]\n            players[current_idx], players[current_idx - 1] = players[current_idx - 1], players[current_idx]\n            \n            player_dict[calling] -= 1\n            player_dict[prev_player] += 1\n            \n    return players",
+      "solution_ms": 57935,
+      "param_ok": true
+    }
+  },
+  {
+    "title": "서버 증설 횟수",
+    "level": 2,
+    "sig": "def solution(players, m, k)",
+    "v4": {
+      "hint": "주어진 사용자 수 데이터에서 각 시간대에 필요한 서버 개수를 계산하여, 이를 기반으로 서버 증설 횟수를 세우도록 접근하세요. 먼저, 각 시간대의 사용자 수에 따라 필요한 서버 수를 결정하고, 이때까지 증설된 서버 수를 추적하면서 증설 횟수를 누적시키는 방식으로 진행해보세요. 마지막으로, 전체 시간대에 걸친 증설 횟수를 반환하면 됩니다.",
+      "hint_ms": 8232,
+      "solution": "def solution(players, m, k):\n    answer = 0\n    \n    for i in range(0,len(players),m):\n        if len(players[i:i+m]) == m:\n            answer += 1\n            \n    return answer",
+      "solution_ms": 3745,
+      "param_ok": true
+    },
+    "v5": {
+      "hint": "증설했습니다.\n\n입력 형식\n\n입출력 예\nm\tk\tplayers\n3\t5\t[4, 3, 3, 2, 5, 3, 3, 1, 4, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]\n입출력 예 설명\n\n위에서 설명한 예시와 같습니다.\n\n제한 조건\n1 ≤ m ≤ 10\n1 ≤ k ≤ 10\n1 ≤ players의 길이 ≤ 1,000\n0 < players[i] ≤ 10\n서버 증설 횟수 계산 시, 소수점 이하는 모두 버립니다.\n입출력 예에 대한 설명\n\n입출력 예 #1\n문제의 예시와 같습니다. 각 시간대별 증설된 서버의 수와 증설 횟수를 참고하세요. 시간 복잡도는 O(n) 이내여야 하며, 공간 복잡도는 O(1) 이내여야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이스 10개를 모두 통과해야 합니다. 테스트 케이",
+      "hint_ms": 254412,
+      "solution": "def solution(players, m, k):\n    from collections import deque\n    \n    server_count = 0\n    increase_count = 0\n    queue = deque()\n    \n    for player in players:\n        while queue and queue[0] < player - k:\n            queue.popleft()\n        \n        if len(queue) < (player // m) + (1 if player % m > 0 else 0):\n            needed_servers = (player // m) + (1 if player % m > 0 else 0)\n            increase_count += needed_servers - len(queue)\n            server_count += needed_servers\n            for _ in range(needed_servers):\n                queue.append(player)\n        else:\n            server_count += len(queue)\n    \n    return increase_count\n\n# Test cases\nprint(solution([4, 4, 4, 4, 4, 4, 4, 4, 4, 4], 3, 5))  # Output: 7\nprint(solution([10, 20, 30, 40, 50], 3, 5))  # Output: 10\nprint(solution([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 5))  # Output: 7\n```",
+      "solution_ms": 161883,
+      "param_ok": true
+    }
+  },
+  {
+    "title": "지게차와 크레인",
+    "level": 2,
+    "sig": "def solution(storage, requests)",
+    "v4": {
+      "hint": "이 문제를 해결하기 위해서는 먼저 각 타입의 컨테이너가 어떻게 배치되어 있는지를 파악해야 합니다. 특히, 크레인으로 제거되는 조건과 지게차로 제거되는 조건을 명확히 이해하여, 각 요청에 대해 적절한 처리 방법을 결정해야 합니다. 이를 위해 큐나 스택 등의 자료구조를 활용하여 현재 접근 가능한 컨테이너들을 관리하고, 출고 요청에 따라 컨테이너들의 상태를 업데이트하는 방식으로 접근하세요. 또한, 출고 요청의 개수가 많아질수록 효율적인 알고리즘 설계가 중요하므로, 시간 복잡도를 최적화하는 것이 필요합니다.",
+      "hint_ms": 11689,
+      "solution": "def solution(storage, requests):\n    answer = 0\n    \n    for request in requests:\n        if len(request) == 1:\n            flag = False\n            for i in range(len(storage)):\n                if storage[i] != \"\":\n                    if (i+1)%request==0 or (len(storage)-i)%request==0:\n                        storage[i]=\"\"\n                        flag=True\n            if not flag:\n                answer+=1\n        else:\n            count=0\n            for i in range(len(storage)):\n                if storage[i]==\"\" and count<len(request):\n                    count+=1\n            if count!=len(request):\n                answer+=1\n\n    return answer",
+      "solution_ms": 9624,
+      "param_ok": true
+    },
+    "v5": {
+      "hint": "주어진 규칙에 따라 수행한 후 물류창고에 있는 컨테이너의 개수를 return 하도록 solution 함수를 완성해주세요.\n\n제한사항\n3 ≤ storage의 길이 = requests의 길이≤ 100\n3 ≤ storage[i]의 길이 ≤ 100\nstorage[i][j]는 알파벳 대문자로 구성되어 있습니다.\nstorage[i][j]의 각 글자는 지게차로 꺼낸 컨테이너를 나타냅니다.\nstorage[i][j]의 각 글자가 \".\"일 경우 크레인으로 꺼낸 컨테이너를 나타냅니다.\nstorage[i][j]의 각 글자가 \"\"일 경우 해당 위치에 컨테이너가 존재하지 않음을 의미합니다.\n입출력 예\nstorage\trequests\tresult\n[\"...A...\", \"..B.B..\", \".B..A..\"]\t[\"A\", \"B.B\", \"A\"]\t11\n[\"........\", \".......A\", \"...A....\", \"......AA\", \".....AAA\", \"....AAAA\", \"...AAAAA\", \"..AAAAAA\", \".AAAAAAA\", \"AAAAAAAA\"]\t[\"A\", \"A.A\", \"A..\", \"A...\", \"A....\", \"A.....\", \"A......\", \"A.......\"]\t8\n입출력 예 설명\n\n입출력 예 #1\n\n문제 예시와 같습니다.\n\n입출력 예 #2\n\n처음에는 100개의 컨테이너가 놓여있습니다. 첫 번째 요청은 지게차로 7개의 A 컨테이너를 꺼냅니다. 두 번째 요청은 크레인으로 6개의 A 컨테이너를 꺼냅니다. 세 번째 요청은 지게차로 9개의 A 컨테이너를 꺼냅니다. 네 번째 요청은 크레인으로 8개의 A 컨테이너를 꺼냅니다. 다섯 번째 요청은 지게차로 7개의 A 컨테이너를 꺼냅니다. 여섯 번째 요청은 지게차로 6개의 A 컨테이너를 꺼냅니다. 일곱 번째 요청은 지게차로 5개의",
+      "hint_ms": 280184,
+      "solution": "def solution(storage, requests):\n    from collections import deque\n\n    n = len(storage)\n    m = len(storage[0])\n    \n    grid = [[0] * (m + 2) for _ in range(n + 2)]\n    for i in range(n):\n        for j in range(m):\n            if storage[i][j]:\n                grid[i + 1][j + 1] = storage[i][j]\n                \n    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n    \n    def bfs(start_x, start_y, target):\n        queue = deque([(start_x, start_y)])\n        visited = set()\n        visited.add((start_x, start_y))\n        \n        while queue:\n            x, y = queue.popleft()\n            \n            if grid[x][y] == target:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                \n                if 0 < nx <= n and 0 < ny <= m and (nx, ny) not in visited and grid[nx][ny]:\n                    visited.add((nx, ny))\n                    queue.append((nx, ny))\n                    \n        return False\n    \n    def crane_pick(target):\n        for i in range(1, n + 1):\n            for j in range(1, m + 1):\n                if grid[i][j] == target:\n                    grid[i][j] = ''\n                    return True\n        return False\n    \n    result = []\n    \n    for request in requests:\n        if len(request) > 1:\n            crane_pick(request)\n        else:\n            found = False\n            for i in range(1, n + 1):\n                for j in range(1, m + 1):\n                    if grid[i][j] == request:\n                        grid[i][j] = ''\n                        found = True\n                        break\n                if found:\n                    break\n            if not found:\n                for i in range(1, n + 1):\n                    for j in range(1, m + 1):\n                        if grid[i][j] == request:\n                            grid[i][j] = ''\n                            break\n                    if found:\n                        break\n    \n    count = sum(sum(row) for row in grid)\n    result.append(count)\n\n    return result",
+      "solution_ms": 267422,
+      "param_ok": true
+    }
+  },
+  {
+    "title": "비밀 코드 해독",
+    "level": 2,
+    "sig": "def solution(n, q, ans)",
+    "v4": {
+      "hint": "이 문제를 해결하기 위해서는 주어진 `m`번의 시도 결과를 기반으로 가능한 비밀 코드 조합을 추론하는 방법을 고려하세요. 각 시도 결과로부터 비밀 코드에 포함되는 숫자들을 세어서, 이를 통해 가능한 조합을 제한할 수 있습니다. 이후, 모든 가능한 조합을 검사하여 최종적으로 유효한 조합의 수를 계산하는 방식으로 접근해보세요.",
+      "hint_ms": 6999,
+      "solution": "def solution(n, m, data):\n    answer = 0\n    \n    for i in range(m) :\n        count = 0\n        \n        for j in range(i+1,i+m) :\n            if data[j][i] == data[i][j] : \n                count += 1\n                \n        if count >= n-1 and count <= n+1 :\n            answer+=1\n            \n    \n    return answer",
+      "solution_ms": 5950,
+      "param_ok": false
+    },
+    "v5": {
+      "hint": "시도에서 비밀 코드에 포함된 정수가 3, 4, 7, 9, 10으로 4개입니다.\n\n따라서, 비밀 코드로 가능한 정수 조합은 위와 같이 3개이며, 이를 나타내는 정수는 3입니다. 이 문제에서는 주어진 m번의 시도 결과를 바탕으로 가능한 비밀 코드 조합의 개수를 구해야 합니다. 각 시도의 입력과 응답을 이용하여 비밀 코드의 조건을 만족하는 경우를 탐색하는 것이 중요합니다. \n\n힌트: 각 시도의 입력과 응답을 기반으로 비밀 코드의 후보를 줄여나가는 방식으로 접근하세요. 비트마스크 또는 집합 자료형을 활용하여 조건을 체크하는 방법을 고려해보세요. 최종적으로 가능한 모든 조합을 탐색하여 유효한 비밀 코드의 개수를 세면 됩니다. 시간 복잡도는 O(m * 2^n)으로 제한되므로 효율적인 방법으로 구현해야 합니다.",
+      "hint_ms": 140015,
+      "solution": "def solution(n, q, ans):\n    from itertools import combinations\n    \n    possible_codes = []\n    \n    for code in combinations(range(1, n + 1), 5):\n        if all(code.count(x) == ans[i] for i, x in enumerate(q)):\n            possible_codes.append(code)\n            \n    return len(set(tuple(sorted(c)) for c in possible_codes)) if possible_codes else 0",
+      "solution_ms": 62141,
+      "param_ok": true
+    }
+  },
+  {
+    "title": "[PCCP 기출문제] 2번 / 퍼즐 게임 챌린지",
+    "level": 2,
+    "sig": "def solution(diffs, times, limit)",
+    "v4": {
+      "hint": "이 문제는 우선순위 큐(최소 힙)를 활용하여 퍼즐을 처리하는 방식으로 접근할 수 있습니다. 각 퍼즐의(diff, time_cur, time_prev) 값을 이용해 필요한 시간을 계산하고, 이를 최소화하기 위해 우선순위 큐에서 가장 효율적인 퍼즐부터 처리하도록 설계하세요. 또한, 현재까지의 누적 시간과 남은 퍼즐 개수를 함께 관리하여 목표 시간 안에 모든 퍼즐을 해결할 수 있는지를 판단해야 합니다.",
+      "hint_ms": 9285,
+      "solution": "def solution(difficulty, time_required, limit):\n    answer = 0\n    \n    for i in range(len(difficulty)):\n        if difficulty[i] <= limit:\n            answer += time_required[i]\n        else:\n            additional_time = (difficulty[i] - limit) * time_required[i] + time_required[i-1]\n            answer += additional_time\n\n    return answer",
+      "solution_ms": 6224,
+      "param_ok": false
+    },
+    "v5": {
+      "hint": "간을 사용하여 퍼즐을 해결합니다.\n\n모든 퍼즐을 푸는 과정에서 당신의 숙련도 level은 1부터 n까지 증가하면서 달라집니다. 모든 퍼즐을 푸는 데 걸리는 최소 시간을 구해야 합니다. 만약 주어진 시간 limit내에 모든 퍼즐을 푸는 것이 불가능하다면 -1을 반환합니다.\n\n힌트\n\n각 퍼즐을 푸는 과정에서 현재 퍼즐의 난이도와 소요 시간을 고려하여, 틀리는 횟수에 따른 시간 계산을 반복적으로 수행하세요. 우선순위 큐를 이용하면 퍼즐을 효율적으로 선택하고 관리할 수 있습니다. 모든 퍼즐을 처리하는 동안 현재 누적된 시간을 비교하여 최솟값을 찾아야 합니다. 시간 복잡도 O(n log n)으로 유지하기 위해 우선순위 큐를 활용하는 것이 중요합니다. \n\n마지막으로, 모든 퍼즐을 푸는 데 필요한 시간을 저장하고, 그 중 가장 작은 값을 반환하도록 하세요. 이때, 불가능한 경우에는 -1을 반환해야 합니다. \n\n참고로, 퍼즐을 푸는 과정에서 이전 퍼즐을 다시 풀 때는 항상 최적의 경로를 고려하여 최소화된 시간을 계산해야 합니다. 이를 통해 최종적인 결과를 도출할 수 있습니다. \n\n(단, 퍼즐의 난이도와 소요시간은 모두 양의 정수이며, 퍼즐의 개수는 최대 1000개까지 가능합니다.) \n\n(단, 퍼즐의 난이도와 소요시간은 모두 양의 정수이며, 퍼즐의 개수는 최대 1000개까지 가능합니다.) \n\n(단, 퍼즐의 난이도와 소요시간은 모두 양의 정수이며, 퍼즐의 개수는 최대 1000개까지 가능합니다.) \n\n(단, 퍼즐의 난이도와 소요시간은 모두 양의 정수이며, �",
+      "hint_ms": 295969,
+      "solution": "def solution(diffs, times, limit):\n    answer = 0\n    for i in range(len(diffs)):\n        if diffs[i] <= limit:\n            answer += times[i]\n        else:\n            answer += (diffs[i] - limit) * (times[i] + times[i-1]) + times[i]\n    return answer\n\n# 테스트 케이스\nprint(solution([1, 2, 3], [2, 3, 5], 2))  # 29\nprint(solution([1, 2, 3], [2, 3, 5], 3))  # 17\nprint(solution([1, 2, 3], [2, 3, 5], 4))  # 12\n```",
+      "solution_ms": 107480,
+      "param_ok": true
+    }
+  },
+  {
+    "title": "도넛과 막대 그래프",
+    "level": 2,
+    "sig": "def solution(edges)",
+    "v4": {
+      "hint": "주어진 그래프 구조를 이해하고, 각 타입(도넛, 막대, 8자)의 그래프를 식별하는 방법을 먼저 고려하세요. 각 그래프의 특성(즉, 사이클 길이 및 정점 수)을 활용하여 도넛, 막대, 8자 그래프를 구분할 수 있습니다. 그 다음, 생성된 추가적인 정점을 통해 각 유형의 그래프의 수를 세고, 이를 기반으로 최종 결과를 도출하세요.",
+      "hint_ms": 8443,
+      "solution": "def solution(edges):\n    answer = []\n    \n    # 인접 리스트 만들기\n    graph = defaultdict(list)\n    for u, v in edges:\n        graph[u].append(v)\n\n    # 각 노드의 진입 차수 계산\n    indegree = [0] * (len(graph) + 1)\n    for node in graph.values():\n        for neighbor in node:\n            indegree[neighbor] += 1\n\n    # 진입차수가 0인 노드 찾기(생성된 노드)\n    root_node = None\n    for i in range(1, len(indegree)):\n        if indegree[i] == 0:\n            root_node = i\n            break\n\n    # 트리 탐색하여 그래프 유형 확인\n    visited = set()\n    stack = [(root_node, 'doughnut')]\n    while stack:\n        current_node, type_graph = stack.pop()\n        \n        if current_node not in visited:\n            visited.add(current_node)\n            \n            if type_graph == 'doughnut':\n                if len(graph[current_node]) != len(set(graph[current_node])):\n                    return [-1]\n                \n                for child in graph[current_node]:\n                    stack.append((child, type_graph))\n                    \n            elif type_graph == 'bar':\n                if len(graph[current_node]) > len(set(graph[current_node])):\n                    return [-1]\n                \n                for child in graph[current_node]:\n                    stack.append((child, type_graph))\n                    \n            else:  # type_graph == 'octagon'\n                octagon_count = 0\n                doughnut_bar_count = 0\n                \n                for child in graph[current_node]:\n                    if child not in visited:\n                        octagon_count += 1\n                        stack.append((child, type_graph))\n                        \n                if octagon_count % 2 != 0:\n                    return [-1]\n                octagon_count //= 2\n                total_nodes_in_octagons = octagon_count * 3 - octagon_count // 4 * 2\n                bar_count = len(graph[root_node]) - octagon_count * 3 + octagon_count // 4 * 2\n                doughnut_bar_count = bar_count - octagon_count // 4 * 2\n                if doughnut_bar_count < 0 or bar_count < 0:\n                    return [-1]\n\n                answer.extend([octagon_count, bar_count])\n                return answer\n            \n    return [-1]",
+      "solution_ms": 55220,
+      "param_ok": true
+    },
+    "v5": {
+      "hint": "주어진 인접 리스트에서 모든 정점의 진입 차수(in-degree)를 계산합니다. 만약 어떤 정점의 진입 차수가 0이고, 그래프 내부의 모든 정점에 대해 한 번씩만 방문할 수 있는 정점이 있다면, 해당 정점은 새로운 정점으로 생성된 것입니다. 따라서, 진입 차수가 0인 정점의 수를 세고, 이를 통해 도넛 모양 그래프, 막대 모양 그래프, 8자 모양 그래프의 수를 추론할 수 있습니다. \n\n또한, 각 그래프의 구조를 고려하여, 생성된 정점과 연결된 그래프의 수를 세는 것도 중요합니다. 최종적으로, 생성된 정점의 번호와 함께 그래프의 종류 및 수를 반환하면 됩니다. \n\n힌트를 통해 그래프의 구조를 분석하고, 각 그래프의 특성을 활용하여 문제를 해결하세요. 그래프 이론적 개념을 활용하면 효율적인 접근법을 찾을 수 있습니다.",
+      "hint_ms": 138428,
+      "solution": "def solution(edges):\n    from collections import defaultdict\n    \n    graph = defaultdict(list)\n    for u, v in edges:\n        graph[u].append(v)\n\n    node_count = len(graph)\n    \n    # Find connected components using DFS\n    visited = set()\n    def dfs(node):\n        if node in visited:\n            return 0\n        visited.add(node)\n        size = 1\n        for neighbor in graph[node]:\n            size += dfs(neighbor)\n        return size\n\n    component_sizes = []\n    for node in graph:\n        if node not in visited:\n            size = dfs(node)\n            component_sizes.append(size)\n\n    # Count the number of each type of graph based on their properties\n    doughnut_count = 0\n    stick_count = 0\n    octagon_count = 0\n\n    for size in component_sizes:\n        if size > 1 and (size - 1) % 2 == 0:\n            doughnut_count += 1\n        elif size > 1 and (size - 1) % 2 != 0:\n            stick_count += 1\n        elif size > 1:\n            octagon_count += 1\n\n    return [node_count + 1] + [doughnut_count, stick_count, octagon_count]",
+      "solution_ms": 156801,
+      "param_ok": true
+    }
+  }
+]
