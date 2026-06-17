@@ -18,8 +18,8 @@ RTX 3060 12GB 단일 GPU 환경에서 Qwen2.5-Coder-7B-Instruct를 QLoRA로 파�
 |---|---|---|---|---|
 | val loss | 0.552 | 0.203 | 0.222 | - |
 | token accuracy | 87.8% | 91.7%* | **94.1%** | - |
-| 파라미터 정확도 | 실패 | 8/10 | **10/10** | - |
-| 코드 완전 정답 | 0/10 | 0/10 | **3/10** | 평가 예정 |
+| 파라미터 정확도 | 실패 | 8/10 | **10/10** | 10/10 |
+| 코드 완전 정답 | 0/10 | 0/10 | **3/10** | 2/10 |
 | rewards/accuracies | - | - | - | **92.5%** |
 
 *v4 token accuracy는 동일 `val.jsonl` 기준으로 재측정한 값(91.7%)이다. 과거 기록된 95.1%는 측정 방식이 명확하지 않아, `compute_token_accuracy.py`로 재현 가능한 값으로 대체했다.
@@ -27,7 +27,7 @@ RTX 3060 12GB 단일 GPU 환경에서 Qwen2.5-Coder-7B-Instruct를 QLoRA로 파�
 - **4차례 반복 실험(v1→v4)** 으로 val loss 63% 감소, 파라미터 정확도 문제 완전 해결
 - **GPT-4o-mini 정량 비교:** 힌트 태스크에서 응답 속도 15% 우위, 코드 생성에서는 완전 대체 실패
 - **논문 기반 개선(v5):** Evol-Instruct 데이터 확장(681→3,848) + IFD+K-Means 40% 선별 → 코드 정답 0→3개, 파라미터 정확도 100%, token accuracy 94.1% 달성
-- **DPO 학습 완료:** rewards/accuracies 92.5%, rewards/margins 0.242로 선호도 학습 확인
+- **DPO 학습 완료:** rewards/accuracies 92.5%로 선호도 학습은 확인됐으나, 실제 코드 완전 정답은 v5(3/10) 대비 DPO(2/10)로 오히려 낮아짐. 선호도 학습과 다운스트림 성능이 별개임을 직접 확인
 
 ---
 
@@ -60,7 +60,7 @@ GPT-4o-mini vs v4 정량 비교
     ↓
 Evol-Instruct 데이터 확장 → IFD+K-Means 선별 → v5
     ↓
-DPO (chosen/rejected 227쌍) 학습 → rewards/accuracies 92.5%
+DPO (chosen/rejected 227쌍) 학습 → v5 vs DPO 코드 품질 재비교
 ```
 
 ---
@@ -148,6 +148,21 @@ v5 기반으로 227쌍의 chosen/rejected 데이터로 DPO 학습 진행.
 
 rewards/accuracies 92.5%는 모델이 10쌍 중 9쌍에서 효율적인 코드(chosen)를 비효율적인 코드(rejected)보다 높은 확률로 선택함을 의미한다.
 
+### DPO 모델 vs v5 코드 품질 비교 (`compare_v4_v5_dpo.py`)
+
+DPO 학습 후 실제 코드 정답률(pass@1)이 개선되는지 v5와 동일 10문제로 비교 평가했다.
+
+| 항목 | v4 | v5 | DPO |
+|---|---|---|---|
+| 파라미터 정확도 | 8/10 | 10/10 | **10/10** |
+| 코드 완전 정답 | 0/10 | **3/10** | 2/10 |
+
+**결과:** DPO는 rewards/accuracies(선호도 학습 지표)는 92.5%로 높았지만, 실제 코드 완전 정답 수는 v5(3/10)보다 낮은 2/10으로 나타났다.
+
+**원인 분석:** 256 토큰 제한에서는 DPO 응답이 설명 중간에 끊겨 0/10이었으나, 512 토큰으로 늘리자 끊김은 해결됐고 2/10까지 회복했다. 다만 v5보다 설명이 길어지는 경향이 생겼고, 그 과정에서 함수 입력 형식을 잘못 가정하거나(예: 구분자 형식 오류) 문제 의도와 다른 복잡한 접근을 시도하는 경우가 늘었다.
+
+**결론:** 선호도 학습(rewards/accuracies)과 실제 태스크 성능(pass@1)은 별개의 지표이며, DPO 적용이 항상 다운스트림 성능 개선을 보장하지 않는다는 것을 직접 확인했다. 개선 방향으로는 (1) DPO 학습 데이터의 입력 형식 다양성 확보, (2) SFT loss를 일부 혼합하는 RPO 방식 적용을 고려할 수 있다.
+
 ---
 
 ## 프로젝트 구조
@@ -171,6 +186,7 @@ coder-llm-finetune/
 ├── train_dpo.py                 # DPO 학습
 ├── compare_eval.py              # GPT vs 로컬 정량 비교
 ├── compare_v4_v5.py             # v4 vs v5 직접 비교
+├── compare_v4_v5_dpo.py         # v4 vs v5 vs DPO 직접 비교
 ├── compute_token_accuracy.py    # v4 vs v5 token accuracy 동일 기준 재평가
 ├── evaluate.py                  # 학습 단계 비교 평가
 ├── patch.py                     # trl 인코딩 패치 (Windows)
@@ -222,6 +238,10 @@ pip install torch==2.1.2+cu118 torchvision==0.16.2+cu118 --index-url https://dow
 pip install transformers==4.40.0 peft==0.10.0 trl==0.11.4 accelerate==0.27.2 bitsandbytes==0.43.0 datasets rich python-dotenv
 python data/generate_dpo.py
 python train_dpo.py
+
+# v4 vs v5 vs DPO 코드 품질 비교 (finetune_env)
+conda activate finetune_env
+python compare_v4_v5_dpo.py
 ```
 
 ---
