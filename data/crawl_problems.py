@@ -10,7 +10,7 @@ from playwright.sync_api import sync_playwright
 OUTPUT_PATH = Path("data/problem_urls.json")
 OUTPUT_PATH.parent.mkdir(exist_ok=True)
 
-LEVELS = [1, 2]
+LEVELS = [1, 2, 3]
 BASE_API = "https://school.programmers.co.kr/api/v2/school/challenges/"
 
 

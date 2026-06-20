@@ -1642,5 +1642,659 @@
     "level": 2,
     "url": "https://school.programmers.co.kr/learn/courses/30/lessons/1829",
     "lesson_id": "1829"
+  },
+  {
+    "title": "기차 선로",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/468381",
+    "lesson_id": "468381"
+  },
+  {
+    "title": "제곱 개수 배열",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/468380",
+    "lesson_id": "468380"
+  },
+  {
+    "title": "보물 찾기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/468378",
+    "lesson_id": "468378"
+  },
+  {
+    "title": "최고 속도",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/468376",
+    "lesson_id": "468376"
+  },
+  {
+    "title": "발전소 회로 복구",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/468375",
+    "lesson_id": "468375"
+  },
+  {
+    "title": "카카오 앱 정리하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/468374",
+    "lesson_id": "468374"
+  },
+  {
+    "title": "숫자 야구",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/451808",
+    "lesson_id": "451808"
+  },
+  {
+    "title": "봉인된 주문",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/389481",
+    "lesson_id": "389481"
+  },
+  {
+    "title": "홀짝트리",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/388354",
+    "lesson_id": "388354"
+  },
+  {
+    "title": "[PCCP 기출문제] 4번 / 수식 복원하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/340210",
+    "lesson_id": "340210"
+  },
+  {
+    "title": "대장균의 크기에 따라 분류하기 2",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/301649",
+    "lesson_id": "301649"
+  },
+  {
+    "title": "대장균의 크기에 따라 분류하기 1",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/299307",
+    "lesson_id": "299307"
+  },
+  {
+    "title": "대장균들의 자식의 수 구하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/299305",
+    "lesson_id": "299305"
+  },
+  {
+    "title": "특정 조건을 만족하는 물고기별 수와 최대 길이 구하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/298519",
+    "lesson_id": "298519"
+  },
+  {
+    "title": "물고기 종류 별 대어 찾기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/293261",
+    "lesson_id": "293261"
+  },
+  {
+    "title": "부서별 평균 연봉 조회하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/284529",
+    "lesson_id": "284529"
+  },
+  {
+    "title": "업그레이드 할 수 없는 아이템 구하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/273712",
+    "lesson_id": "273712"
+  },
+  {
+    "title": "주사위 고르기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/258709",
+    "lesson_id": "258709"
+  },
+  {
+    "title": "n + 1 카드게임",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/258707",
+    "lesson_id": "258707"
+  },
+  {
+    "title": "산 모양 타일링",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/258705",
+    "lesson_id": "258705"
+  },
+  {
+    "title": "[PCCP 기출문제] 4번 / 수레 움직이기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/250134",
+    "lesson_id": "250134"
+  },
+  {
+    "title": "에어컨",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/214289",
+    "lesson_id": "214289"
+  },
+  {
+    "title": "상담원 인원",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/214288",
+    "lesson_id": "214288"
+  },
+  {
+    "title": "아방가르드 타일링",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/181186",
+    "lesson_id": "181186"
+  },
+  {
+    "title": "조회수가 가장 많은 중고거래 게시판의 첨부파일 조회하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/164671",
+    "lesson_id": "164671"
+  },
+  {
+    "title": "조건에 맞는 사용자 정보 조회하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/164670",
+    "lesson_id": "164670"
+  },
+  {
+    "title": "조건에 맞는 사용자와 총 거래금액 조회하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/164668",
+    "lesson_id": "164668"
+  },
+  {
+    "title": "연속 펄스 부분 수열의 합",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/161988",
+    "lesson_id": "161988"
+  },
+  {
+    "title": "대여 기록이 존재하는 자동차 리스트 구하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/157341",
+    "lesson_id": "157341"
+  },
+  {
+    "title": "자동차 대여 기록에서 대여중 / 대여 가능 여부 구분하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/157340",
+    "lesson_id": "157340"
+  },
+  {
+    "title": "인사고과",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/152995",
+    "lesson_id": "152995"
+  },
+  {
+    "title": "대여 횟수가 많은 자동차들의 월별 대여 횟수 구하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/151139",
+    "lesson_id": "151139"
+  },
+  {
+    "title": "표현 가능한 이진트리",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/150367",
+    "lesson_id": "150367"
+  },
+  {
+    "title": "표 병합",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/150366",
+    "lesson_id": "150366"
+  },
+  {
+    "title": "미로 탈출 명령어",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/150365",
+    "lesson_id": "150365"
+  },
+  {
+    "title": "카테고리 별 도서 판매량 집계하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/144855",
+    "lesson_id": "144855"
+  },
+  {
+    "title": "억억단을 외우자",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/138475",
+    "lesson_id": "138475"
+  },
+  {
+    "title": "숫자 타자 대회",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/136797",
+    "lesson_id": "136797"
+  },
+  {
+    "title": "등대",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/133500",
+    "lesson_id": "133500"
+  },
+  {
+    "title": "부대복귀",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/132266",
+    "lesson_id": "132266"
+  },
+  {
+    "title": "2차원 동전 뒤집기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/131703",
+    "lesson_id": "131703"
+  },
+  {
+    "title": "고고학 최고의 발견",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/131702",
+    "lesson_id": "131702"
+  },
+  {
+    "title": "카운트 다운",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/131129",
+    "lesson_id": "131129"
+  },
+  {
+    "title": "즐겨찾기가 가장 많은 식당 정보 출력하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/131123",
+    "lesson_id": "131123"
+  },
+  {
+    "title": "조건별로 분류하여 주문상태 출력하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/131113",
+    "lesson_id": "131113"
+  },
+  {
+    "title": "등산코스 정하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/118669",
+    "lesson_id": "118669"
+  },
+  {
+    "title": "코딩 테스트 공부",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/118668",
+    "lesson_id": "118668"
+  },
+  {
+    "title": "사라지는 발판",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/92345",
+    "lesson_id": "92345"
+  },
+  {
+    "title": "파괴되지 않은 건물",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/92344",
+    "lesson_id": "92344"
+  },
+  {
+    "title": "양과 늑대",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/92343",
+    "lesson_id": "92343"
+  },
+  {
+    "title": "아이템 줍기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/87694",
+    "lesson_id": "87694"
+  },
+  {
+    "title": "공 이동 시뮬레이션",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/87391",
+    "lesson_id": "87391"
+  },
+  {
+    "title": "금과 은 운반하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/86053",
+    "lesson_id": "86053"
+  },
+  {
+    "title": "퍼즐 조각 채우기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/84021",
+    "lesson_id": "84021"
+  },
+  {
+    "title": "표 편집",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/81303",
+    "lesson_id": "81303"
+  },
+  {
+    "title": "110 옮기기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/77886",
+    "lesson_id": "77886"
+  },
+  {
+    "title": "헤비 유저가 소유한 장소",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/77487",
+    "lesson_id": "77487"
+  },
+  {
+    "title": "다단계 칫솔 판매",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/77486",
+    "lesson_id": "77486"
+  },
+  {
+    "title": "모두 0으로 만들기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/76503",
+    "lesson_id": "76503"
+  },
+  {
+    "title": "카드 짝 맞추기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/72415",
+    "lesson_id": "72415"
+  },
+  {
+    "title": "광고 삽입",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/72414",
+    "lesson_id": "72414"
+  },
+  {
+    "title": "합승 택시 요금",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/72413",
+    "lesson_id": "72413"
+  },
+  {
+    "title": "스타 수열",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/70130",
+    "lesson_id": "70130"
+  },
+  {
+    "title": "풍선 터트리기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/68646",
+    "lesson_id": "68646"
+  },
+  {
+    "title": "경주로 건설",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/67259",
+    "lesson_id": "67259"
+  },
+  {
+    "title": "보석 쇼핑",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/67258",
+    "lesson_id": "67258"
+  },
+  {
+    "title": "불량 사용자",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/64064",
+    "lesson_id": "64064"
+  },
+  {
+    "title": "징검다리 건너기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/64062",
+    "lesson_id": "64062"
+  },
+  {
+    "title": "블록 이동하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/60063",
+    "lesson_id": "60063"
+  },
+  {
+    "title": "외벽 점검",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/60062",
+    "lesson_id": "60062"
+  },
+  {
+    "title": "기둥과 보 설치",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/60061",
+    "lesson_id": "60061"
+  },
+  {
+    "title": "자물쇠와 열쇠",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/60059",
+    "lesson_id": "60059"
+  },
+  {
+    "title": "오랜 기간 보호한 동물(2)",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/59411",
+    "lesson_id": "59411"
+  },
+  {
+    "title": "오랜 기간 보호한 동물(1)",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/59044",
+    "lesson_id": "59044"
+  },
+  {
+    "title": "있었는데요 없었습니다",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/59043",
+    "lesson_id": "59043"
+  },
+  {
+    "title": "없어진 기록 찾기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/59042",
+    "lesson_id": "59042"
+  },
+  {
+    "title": "순위",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/49191",
+    "lesson_id": "49191"
+  },
+  {
+    "title": "가장 먼 노드",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/49189",
+    "lesson_id": "49189"
+  },
+  {
+    "title": "입국심사",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/43238",
+    "lesson_id": "43238"
+  },
+  {
+    "title": "여행경로",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/43164",
+    "lesson_id": "43164"
+  },
+  {
+    "title": "단어 변환",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/43163",
+    "lesson_id": "43163"
+  },
+  {
+    "title": "네트워크",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/43162",
+    "lesson_id": "43162"
+  },
+  {
+    "title": "정수 삼각형",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/43105",
+    "lesson_id": "43105"
+  },
+  {
+    "title": "등굣길",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/42898",
+    "lesson_id": "42898"
+  },
+  {
+    "title": "N으로 표현",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/42895",
+    "lesson_id": "42895"
+  },
+  {
+    "title": "매칭 점수",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/42893",
+    "lesson_id": "42893"
+  },
+  {
+    "title": "길 찾기 게임",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/42892",
+    "lesson_id": "42892"
+  },
+  {
+    "title": "단속카메라",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/42884",
+    "lesson_id": "42884"
+  },
+  {
+    "title": "섬 연결하기",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/42861",
+    "lesson_id": "42861"
+  },
+  {
+    "title": "이중우선순위큐",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/42628",
+    "lesson_id": "42628"
+  },
+  {
+    "title": "디스크 컨트롤러",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/42627",
+    "lesson_id": "42627"
+  },
+  {
+    "title": "베스트앨범",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/42579",
+    "lesson_id": "42579"
+  },
+  {
+    "title": "[1차] 셔틀버스",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/17678",
+    "lesson_id": "17678"
+  },
+  {
+    "title": "[1차] 추석 트래픽",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/17676",
+    "lesson_id": "17676"
+  },
+  {
+    "title": "숫자 게임",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/12987",
+    "lesson_id": "12987"
+  },
+  {
+    "title": "기지국 설치",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/12979",
+    "lesson_id": "12979"
+  },
+  {
+    "title": "스티커 모으기(2)",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/12971",
+    "lesson_id": "12971"
+  },
+  {
+    "title": "최적의 행렬 곱셈",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/12942",
+    "lesson_id": "12942"
+  },
+  {
+    "title": "최고의 집합",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/12938",
+    "lesson_id": "12938"
+  },
+  {
+    "title": "야근 지수",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/12927",
+    "lesson_id": "12927"
+  },
+  {
+    "title": "선입 선출 스케줄링",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/12920",
+    "lesson_id": "12920"
+  },
+  {
+    "title": "거스름돈",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/12907",
+    "lesson_id": "12907"
+  },
+  {
+    "title": "가장 긴 팰린드롬",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/12904",
+    "lesson_id": "12904"
+  },
+  {
+    "title": "몸짱 트레이너 라이언의 고민",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/1838",
+    "lesson_id": "1838"
+  },
+  {
+    "title": "GPS",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/1837",
+    "lesson_id": "1837"
+  },
+  {
+    "title": "리틀 프렌즈 사천성",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/1836",
+    "lesson_id": "1836"
+  },
+  {
+    "title": "캠핑",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/1833",
+    "lesson_id": "1833"
+  },
+  {
+    "title": "보행자 천국",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/1832",
+    "lesson_id": "1832"
+  },
+  {
+    "title": "브라이언의 고민",
+    "level": 3,
+    "url": "https://school.programmers.co.kr/learn/courses/30/lessons/1830",
+    "lesson_id": "1830"
   }
 ]
