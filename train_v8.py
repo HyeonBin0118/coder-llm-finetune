@@ -1,7 +1,8 @@
 """
-QLoRA 파인튜닝 스크립트
+QLoRA 파인튜닝 스크립트 (v8)
 모델: Qwen2.5-Coder-7B-Instruct
-데이터: data/train_selected.jsonl, data/val.jsonl
+데이터: data/train_selected.jsonl (Level1~3 확장 + GitHub 코드 검증 + IFD 선별, 1,685개), data/val.jsonl
+변경점: 학습 데이터 규모만 확장 (1,381 -> 1,685), 나머지 설정은 v5와 완전히 동일
 """
 import json
 import torch
@@ -12,10 +13,10 @@ from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_tr
 from trl import SFTTrainer
 
 MODEL_ID   = "Qwen/Qwen2.5-Coder-7B-Instruct"
-OUTPUT_DIR = "output/qwen-coder-finetune-v5"
+OUTPUT_DIR = "output/qwen-coder-finetune-v8"
 TRAIN_PATH = "data/train_selected.jsonl"
 VAL_PATH   = "data/val.jsonl"
-MAX_LENGTH = 256
+MAX_LENGTH = 512
 
 
 def load_jsonl(path: str) -> Dataset:
@@ -42,7 +43,7 @@ def format_messages(example):
 
 
 def main():
-    print("=== QLoRA 파인튜닝 시작 ===")
+    print("=== QLoRA 파인튜닝 시작 (v8: 학습 데이터 규모 확장) ===")
     print(f"GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
 
     train_dataset = load_jsonl(TRAIN_PATH)
@@ -85,7 +86,7 @@ def main():
 
     training_args = TrainingArguments(
         output_dir=OUTPUT_DIR,
-        num_train_epochs=1,
+        num_train_epochs=3,
         per_device_train_batch_size=1,
         per_device_eval_batch_size=1,
         gradient_accumulation_steps=8,

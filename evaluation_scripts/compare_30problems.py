@@ -1,9 +1,7 @@
 """
-v5 vs v7 모델 비교 평가
-- Level 1 문제 5개, Level 2 문제 5개 (총 10개) - 기존과 동일한 평가셋
-- v7: train_selected_v2.jsonl (AST 검증 정제본, 1,354개), r=16
-- penalty 없음: v5 기존 3/10 측정이 penalty 없이 이뤄졌으므로 일관성 유지
-- 결과: evaluation/compare_v5_v7.json
+v4 vs v5 vs DPO vs v8 모델 비교 평가 (30문제 확장판)
+- Level 1 문제 15개, Level 2 문제 15개 (총 30개)
+- 결과: evaluation/compare_30problems.json
 """
 import json
 import time
@@ -15,10 +13,12 @@ from peft import PeftModel
 
 # ───────────── 설정 ─────────────
 BASE_MODEL_ID = "Qwen/Qwen2.5-Coder-7B-Instruct"
+V4_DIR        = "output/qwen-coder-finetune-v4"
 V5_DIR        = "output/qwen-coder-finetune-v5"
-V7_DIR        = "output/qwen-coder-finetune-v7"
+DPO_DIR       = "output/qwen-coder-finetune-dpo"
+V8_DIR        = "output/qwen-coder-finetune-v8"
 DATA_PATH     = "data/github_solutions.json"
-OUTPUT_PATH   = "evaluation/compare_v5_v7.json"
+OUTPUT_PATH   = "evaluation/compare_30problems.json"
 
 SYSTEM_PROMPT = "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
 
@@ -36,6 +36,22 @@ SOLUTION_PROMPT = """다음 프로그래머스 문제의 Python 정답 코드를
 함수 시그니처: {sig}
 문제 설명:
 {description}"""
+
+# 기존 10문제 + 신규 20문제 = 30문제 제목 고정
+EXISTING_10 = [
+    "가장 많이 받은 선물", "[PCCP 기출문제] 1번 / 붕대 감기", "[PCCE 기출문제] 9번 / 이웃한 칸",
+    "[PCCE 기출문제] 10번 / 데이터 분석", "달리기 경주", "서버 증설 횟수",
+    "지게차와 크레인", "비밀 코드 해독", "[PCCP 기출문제] 2번 / 퍼즐 게임 챌린지", "도넛과 막대 그래프"
+]
+NEW_LEVEL1_10 = [
+    "추억 점수", "공원 산책", "바탕화면 정리", "덧칠하기", "대충 만든 자판",
+    "카드 뭉치", "둘만의 암호", "개인정보 수집 유효기간", "크기가 작은 부분 문자열", "가장 가까운 같은 글자"
+]
+NEW_LEVEL2_10 = [
+    "[PCCP 기출문제] 2번 / 석유 시추", "요격 시스템", "두 원 사이의 정수 쌍", "연속된 부분 수열의 합",
+    "과제 진행하기", "광물 캐기", "리코쳇 로봇", "당구 연습", "혼자서 하는 틱택토", "미로 탈출"
+]
+ALL_30 = EXISTING_10 + NEW_LEVEL1_10 + NEW_LEVEL2_10
 
 
 # ───────────── 모델 로드 ─────────────
@@ -57,7 +73,14 @@ def load_model(adapter_dir: str, label: str):
         trust_remote_code=True,
     )
 
-    model = PeftModel.from_pretrained(base_model, adapter_dir)
+    if label == "dpo":
+        # DPO는 v5 기반으로 학습됐으므로 base -> v5 -> dpo 순으로 얹는다
+        model = PeftModel.from_pretrained(base_model, V5_DIR)
+        model = model.merge_and_unload()
+        model = PeftModel.from_pretrained(model, adapter_dir)
+    else:
+        model = PeftModel.from_pretrained(base_model, adapter_dir)
+
     model.eval()
     print(f"{label} 로드 완료")
     return model, tokenizer
@@ -131,15 +154,21 @@ def check_param_accuracy(response: str, sig: str) -> bool:
 # ───────────── 메인 ─────────────
 def main():
     data = json.loads(Path(DATA_PATH).read_text(encoding="utf-8"))
+    title_map = {d["title"]: d for d in data}
 
-    level1 = [p for p in data if p["level"] == 1 and p.get("solutions")][:5]
-    level2 = [p for p in data if p["level"] == 2 and p.get("solutions")][:5]
-    problems = level1 + level2
-    print(f"평가 문제: {len(problems)}개 (Level1: {len(level1)}, Level2: {len(level2)})\n")
+    problems = []
+    for title in ALL_30:
+        if title in title_map and title_map[title].get("solutions"):
+            problems.append(title_map[title])
+        else:
+            print(f"경고: '{title}' 문제를 찾을 수 없거나 solutions가 없음")
+
+    print(f"평가 문제: {len(problems)}개\n")
 
     results = []
+    versions = [("v4", V4_DIR), ("v5", V5_DIR), ("dpo", DPO_DIR), ("v8", V8_DIR)]
 
-    for version, adapter_dir in [("v5", V5_DIR), ("v7", V7_DIR)]:
+    for version, adapter_dir in versions:
         model, tokenizer = load_model(adapter_dir, version)
 
         for i, problem in enumerate(problems):
@@ -152,7 +181,9 @@ def main():
 
             entry = next((r for r in results if r["title"] == title), None)
             if entry is None:
-                entry = {"title": title, "level": level, "sig": sig, "v5": {}, "v7": {}}
+                entry = {"title": title, "level": level, "sig": sig}
+                for v, _ in versions:
+                    entry[v] = {}
                 results.append(entry)
 
             for task in ["hint", "solution"]:
@@ -176,18 +207,17 @@ def main():
     )
     print(f"결과 저장 → {OUTPUT_PATH}")
 
-    print("\n=== v5 vs v7 비교 요약 ===")
+    print("\n=== 30문제 비교 요약 ===")
     for task in ["hint", "solution"]:
-        for v in ["v5", "v7"]:
+        for v, _ in versions:
             avg = sum(r[v].get(f"{task}_ms", 0) for r in results) // len(results)
             print(f"  {task:10s} 응답 시간 [{v}]: {avg}ms")
 
-    for v in ["v5", "v7"]:
+    for v, _ in versions:
         param_ok = sum(1 for r in results if r[v].get("param_ok"))
         print(f"  파라미터 정확도 [{v}]: {param_ok}/{len(results)}")
 
-    print("\n주의: code_correct 필드는 null로 저장됨. evaluation/compare_v5_v7.json을")
-    print("직접 열어서 각 문제의 solution 코드를 실제로 실행/검토 후 true/false로 채워야 함.")
+    print("\n주의: code_correct 필드는 null로 저장됨. 직접 검토 후 채점 필요.")
 
 
 if __name__ == "__main__":

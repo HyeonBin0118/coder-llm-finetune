@@ -1,9 +1,9 @@
 """
-v5 vs v7 모델 비교 평가
+v5 vs v8 모델 비교 평가
 - Level 1 문제 5개, Level 2 문제 5개 (총 10개) - 기존과 동일한 평가셋
-- v7: train_selected_v2.jsonl (AST 검증 정제본, 1,354개), r=16
-- penalty 없음: v5 기존 3/10 측정이 penalty 없이 이뤄졌으므로 일관성 유지
-- 결과: evaluation/compare_v5_v7.json
+- 각 문제마다 hint / solution 생성 및 비교
+- 응답 시간(ms) + 파라미터 정확도 + 코드 완전 정답 수동 채점용 저장
+- 결과: evaluation/compare_v5_v8.json
 """
 import json
 import time
@@ -16,9 +16,9 @@ from peft import PeftModel
 # ───────────── 설정 ─────────────
 BASE_MODEL_ID = "Qwen/Qwen2.5-Coder-7B-Instruct"
 V5_DIR        = "output/qwen-coder-finetune-v5"
-V7_DIR        = "output/qwen-coder-finetune-v7"
+V8_DIR        = "output/qwen-coder-finetune-v8"
 DATA_PATH     = "data/github_solutions.json"
-OUTPUT_PATH   = "evaluation/compare_v5_v7.json"
+OUTPUT_PATH   = "evaluation/compare_v5_v8.json"
 
 SYSTEM_PROMPT = "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
 
@@ -139,7 +139,7 @@ def main():
 
     results = []
 
-    for version, adapter_dir in [("v5", V5_DIR), ("v7", V7_DIR)]:
+    for version, adapter_dir in [("v5", V5_DIR), ("v8", V8_DIR)]:
         model, tokenizer = load_model(adapter_dir, version)
 
         for i, problem in enumerate(problems):
@@ -152,7 +152,7 @@ def main():
 
             entry = next((r for r in results if r["title"] == title), None)
             if entry is None:
-                entry = {"title": title, "level": level, "sig": sig, "v5": {}, "v7": {}}
+                entry = {"title": title, "level": level, "sig": sig, "v5": {}, "v8": {}}
                 results.append(entry)
 
             for task in ["hint", "solution"]:
@@ -176,17 +176,17 @@ def main():
     )
     print(f"결과 저장 → {OUTPUT_PATH}")
 
-    print("\n=== v5 vs v7 비교 요약 ===")
+    print("\n=== v5 vs v8 비교 요약 ===")
     for task in ["hint", "solution"]:
-        for v in ["v5", "v7"]:
+        for v in ["v5", "v8"]:
             avg = sum(r[v].get(f"{task}_ms", 0) for r in results) // len(results)
             print(f"  {task:10s} 응답 시간 [{v}]: {avg}ms")
 
-    for v in ["v5", "v7"]:
+    for v in ["v5", "v8"]:
         param_ok = sum(1 for r in results if r[v].get("param_ok"))
         print(f"  파라미터 정확도 [{v}]: {param_ok}/{len(results)}")
 
-    print("\n주의: code_correct 필드는 null로 저장됨. evaluation/compare_v5_v7.json을")
+    print("\n주의: code_correct 필드는 null로 저장됨. evaluation/compare_v5_v8.json을")
     print("직접 열어서 각 문제의 solution 코드를 실제로 실행/검토 후 true/false로 채워야 함.")
 
 

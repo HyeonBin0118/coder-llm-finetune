@@ -8,8 +8,8 @@ import json
 import re
 
 RAW_PATH = "data/dataset_raw.json"
-GITHUB_PATH = "data/github_solutions.json"
-OUTPUT_PATH = "data/dataset_v2.json"
+GITHUB_PATH = "data/github_solutions_v2.json"
+OUTPUT_PATH = "data/dataset_v3.json"
 
 SYSTEM_PROMPT = "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
 

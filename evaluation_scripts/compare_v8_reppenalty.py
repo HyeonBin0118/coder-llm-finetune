@@ -1,9 +1,7 @@
 """
-v5 vs v7 모델 비교 평가
-- Level 1 문제 5개, Level 2 문제 5개 (총 10개) - 기존과 동일한 평가셋
-- v7: train_selected_v2.jsonl (AST 검증 정제본, 1,354개), r=16
-- penalty 없음: v5 기존 3/10 측정이 penalty 없이 이뤄졌으므로 일관성 유지
-- 결과: evaluation/compare_v5_v7.json
+v8 모델 repetition_penalty 적용 재평가
+- 반복 생성 버그가 추론 설정 문제인지 학습 문제인지 검증
+- 결과: evaluation/compare_v8_reppenalty.json
 """
 import json
 import time
@@ -15,10 +13,9 @@ from peft import PeftModel
 
 # ───────────── 설정 ─────────────
 BASE_MODEL_ID = "Qwen/Qwen2.5-Coder-7B-Instruct"
-V5_DIR        = "output/qwen-coder-finetune-v5"
-V7_DIR        = "output/qwen-coder-finetune-v7"
+V8_DIR        = "output/qwen-coder-finetune-v8"
 DATA_PATH     = "data/github_solutions.json"
-OUTPUT_PATH   = "evaluation/compare_v5_v7.json"
+OUTPUT_PATH   = "evaluation/compare_v8_reppenalty.json"
 
 SYSTEM_PROMPT = "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
 
@@ -68,7 +65,7 @@ def unload_model(model):
     torch.cuda.empty_cache()
 
 
-# ───────────── 추론 ─────────────
+# ───────────── 추론 (repetition_penalty 추가) ─────────────
 def ask_model(model, tokenizer, prompt: str) -> tuple[str, int]:
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -90,6 +87,7 @@ def ask_model(model, tokenizer, prompt: str) -> tuple[str, int]:
             **inputs,
             max_new_tokens=512,
             temperature=0.3,
+            repetition_penalty=1.3,   # ← 핵심 변경: 반복 억제
             do_sample=True,
             pad_token_id=tokenizer.eos_token_id,
         )
@@ -138,36 +136,33 @@ def main():
     print(f"평가 문제: {len(problems)}개 (Level1: {len(level1)}, Level2: {len(level2)})\n")
 
     results = []
+    model, tokenizer = load_model(V8_DIR, "v8")
 
-    for version, adapter_dir in [("v5", V5_DIR), ("v7", V7_DIR)]:
-        model, tokenizer = load_model(adapter_dir, version)
+    for i, problem in enumerate(problems):
+        title = problem["title"]
+        level = problem["level"]
+        sig   = extract_sig(problem.get("solutions", []))
+        prompts = build_prompts(problem)
 
-        for i, problem in enumerate(problems):
-            title = problem["title"]
-            level = problem["level"]
-            sig   = extract_sig(problem.get("solutions", []))
-            prompts = build_prompts(problem)
+        print(f"[v8+reppenalty] [{i+1}/{len(problems)}] {title}")
 
-            print(f"[{version}] [{i+1}/{len(problems)}] {title}")
+        entry = {"title": title, "level": level, "sig": sig}
 
-            entry = next((r for r in results if r["title"] == title), None)
-            if entry is None:
-                entry = {"title": title, "level": level, "sig": sig, "v5": {}, "v7": {}}
-                results.append(entry)
+        for task in ["hint", "solution"]:
+            resp, ms = ask_model(model, tokenizer, prompts[task])
+            entry[task] = resp
+            entry[f"{task}_ms"] = ms
 
-            for task in ["hint", "solution"]:
-                resp, ms = ask_model(model, tokenizer, prompts[task])
-                entry[version][task] = resp
-                entry[version][f"{task}_ms"] = ms
+            if task == "solution":
+                entry["param_ok"] = check_param_accuracy(resp, sig)
+                entry["code_correct"] = None  # 수동 채점
 
-                if task == "solution":
-                    entry[version]["param_ok"] = check_param_accuracy(resp, sig)
-                    entry[version]["code_correct"] = None  # 수동 채점
+            print(f"  {task}: {ms}ms")
 
-                print(f"  {task}: {ms}ms")
+        results.append(entry)
 
-        unload_model(model)
-        print(f"\n{version} 평가 완료, 모델 언로드\n")
+    unload_model(model)
+    print(f"\nv8 (repetition_penalty=1.3) 평가 완료\n")
 
     Path("evaluation").mkdir(exist_ok=True)
     Path(OUTPUT_PATH).write_text(
@@ -176,18 +171,17 @@ def main():
     )
     print(f"결과 저장 → {OUTPUT_PATH}")
 
-    print("\n=== v5 vs v7 비교 요약 ===")
+    print("\n=== v8 (repetition_penalty=1.3) 요약 ===")
     for task in ["hint", "solution"]:
-        for v in ["v5", "v7"]:
-            avg = sum(r[v].get(f"{task}_ms", 0) for r in results) // len(results)
-            print(f"  {task:10s} 응답 시간 [{v}]: {avg}ms")
+        avg = sum(r.get(f"{task}_ms", 0) for r in results) // len(results)
+        print(f"  {task:10s} 응답 시간: {avg}ms")
 
-    for v in ["v5", "v7"]:
-        param_ok = sum(1 for r in results if r[v].get("param_ok"))
-        print(f"  파라미터 정확도 [{v}]: {param_ok}/{len(results)}")
+    param_ok = sum(1 for r in results if r.get("param_ok"))
+    print(f"  파라미터 정확도: {param_ok}/{len(results)}")
 
-    print("\n주의: code_correct 필드는 null로 저장됨. evaluation/compare_v5_v7.json을")
-    print("직접 열어서 각 문제의 solution 코드를 실제로 실행/검토 후 true/false로 채워야 함.")
+    print("\n주의: code_correct 필드는 null로 저장됨. 직접 검토 후 채점 필요.")
+    print("v5 결과(이전 evaluation/compare_v5_v8.json)와 비교해서")
+    print("응답 시간이 v5 수준(평균 40초대)으로 줄었는지, 반복 생성 버그가 사라졌는지 확인할 것.")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,8 @@
 """
-QLoRA 파인튜닝 스크립트
+QLoRA 파인튜닝 스크립트 (v5 재현 실험, v5-repro)
 모델: Qwen2.5-Coder-7B-Instruct
-데이터: data/train_selected.jsonl, data/val.jsonl
+데이터: data/train_selected_v5_original.jsonl (git에서 복원한 v5 원본 1,381개), data/val.jsonl
+목적: v5와 완전히 동일한 데이터/설정으로 재학습해, v5의 결과가 재현 가능한지 검증
 """
 import json
 import torch
@@ -12,10 +13,10 @@ from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_tr
 from trl import SFTTrainer
 
 MODEL_ID   = "Qwen/Qwen2.5-Coder-7B-Instruct"
-OUTPUT_DIR = "output/qwen-coder-finetune-v5"
-TRAIN_PATH = "data/train_selected.jsonl"
-VAL_PATH   = "data/val.jsonl"
-MAX_LENGTH = 256
+OUTPUT_DIR = "output/qwen-coder-finetune-v5-repro"
+TRAIN_PATH = "data/train_selected_v5_original.jsonl"
+VAL_PATH   = "data/val_v5_original.jsonl"
+MAX_LENGTH = 512
 
 
 def load_jsonl(path: str) -> Dataset:
@@ -42,7 +43,7 @@ def format_messages(example):
 
 
 def main():
-    print("=== QLoRA 파인튜닝 시작 ===")
+    print("=== QLoRA 파인튜닝 시작 (v5 재현 실험) ===")
     print(f"GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
 
     train_dataset = load_jsonl(TRAIN_PATH)
@@ -85,7 +86,7 @@ def main():
 
     training_args = TrainingArguments(
         output_dir=OUTPUT_DIR,
-        num_train_epochs=1,
+        num_train_epochs=3,
         per_device_train_batch_size=1,
         per_device_eval_batch_size=1,
         gradient_accumulation_steps=8,

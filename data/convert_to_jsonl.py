@@ -7,7 +7,7 @@ import json
 import random
 from pathlib import Path
 
-INPUT_PATH = Path("data/dataset_v2.json")
+INPUT_PATH = Path("data/dataset_v3.json")
 TRAIN_PATH = Path("data/train.jsonl")
 VAL_PATH   = Path("data/val.jsonl")
 
