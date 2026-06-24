@@ -1,0 +1,400 @@
+[
+  {
+    "title": "올바른 괄호 [제약 추가]",
+    "level": 2,
+    "task": "solution",
+    "evol_type": "constraint",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 올바른 괄호 [제약 추가]\n난이도: Level 2\n함수 시그니처: def solution(s)\n문제 설명:\n변형문제설명: 올바른 괄호"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(s):\n    stack = []\n    for char in s:\n        if char == '(':\n            stack.append(char)\n        elif char == ')':\n            if not stack:\n                return False\n            stack.pop()\n    return len(stack) == 0"
+      }
+    ]
+  },
+  {
+    "title": "최고의 집합 [재귀 변환]",
+    "level": 3,
+    "task": "solution",
+    "evol_type": "recursive",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 최고의 집합 [재귀 변환]\n난이도: Level 3\n함수 시그니처: def solution(n, s)\n문제 설명:\n최고의 집합 재귀 문제 변형 설명"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(n, s):\n    if n == 0:\n        return [] if s == 0 else None\n    if s < n:\n        return None\n    result = [1] * n\n    s -= n\n    for i in range(n - 1, -1, -1):\n        add = min(s, 9 - result[i])\n        result[i] += add\n        s -= add\n        if s == 0:\n            break\n    return result if s == 0 else None"
+      }
+    ]
+  },
+  {
+    "title": "단속카메라 [제약 추가]",
+    "level": 3,
+    "task": "solution",
+    "evol_type": "constraint",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 단속카메라 [제약 추가]\n난이도: Level 3\n함수 시그니처: def solution(routes)\n문제 설명:\n변형문제설명: 단속카메라"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(routes):\n    routes.sort(key=lambda x: x[1])\n    camera_count = 0\n    last_camera_position = float('-inf')\n    \n    for route in routes:\n        if route[0] > last_camera_position:\n            camera_count += 1\n            last_camera_position = route[1]\n    \n    return camera_count"
+      }
+    ]
+  },
+  {
+    "title": "줄 서는 방법 [재귀 변환]",
+    "level": 2,
+    "task": "solution",
+    "evol_type": "recursive",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 줄 서는 방법 [재귀 변환]\n난이도: Level 2\n함수 시그니처: def solution(n, k)\n문제 설명:\n줄 서는 방법 - k번째 순열 찾기"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(n, k):\n    from math import factorial\n    nums = list(range(1, n + 1))\n    k -= 1\n    result = []\n    \n    for i in range(n):\n        idx = k // factorial(n - 1 - i)\n        result.append(nums[idx])\n        nums.pop(idx)\n        k %= factorial(n - 1 - i)\n    \n    return result"
+      }
+    ]
+  },
+  {
+    "title": "[PCCP 기출문제] 4번 / 수식 복원하기 [제약 추가]",
+    "level": 3,
+    "task": "solution",
+    "evol_type": "constraint",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: [PCCP 기출문제] 4번 / 수식 복원하기 [제약 추가]\n난이도: Level 3\n함수 시그니처: def solution(expressions)\n문제 설명:\n[PCCP 기출문제] 4번 변형 문제"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(expressions):\n    results = []\n    for expr in expressions:\n        stack = []\n        for char in expr:\n            if char.isdigit():\n                stack.append(char)\n            elif char in '+-*/':\n                b = stack.pop()\n                a = stack.pop()\n                if char == '+':\n                    stack.append(str(int(a) + int(b)))\n                elif char == '-':\n                    stack.append(str(int(a) - int(b)))\n                elif char == '*':\n                    stack.append(str(int(a) * int(b)))\n                elif char == '/':\n                    stack.append(str(int(a) // int(b)))\n        results.append(stack[0])\n    return results"
+      }
+    ]
+  },
+  {
+    "title": "폰켓몬 [재귀 변환]",
+    "level": 1,
+    "task": "solution",
+    "evol_type": "recursive",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 폰켓몬 [재귀 변환]\n난이도: Level 1\n함수 시그니처: def solution(nums)\n문제 설명:\n변형문제설명: 주어진 폰켓몬 리스트에서 N"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(nums):\n    def unique_count(nums):\n        if not nums:\n            return 0\n        return 1 + unique_count([num for num in nums[1:] if num != nums[0]])\n    \n    unique_pokemon = unique_count(list(set(nums)))\n    return min(unique_pokemon, len(nums) // 2)"
+      }
+    ]
+  },
+  {
+    "title": "N개의 최소공배수 [재귀 변환]",
+    "level": 2,
+    "task": "solution",
+    "evol_type": "recursive",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: N개의 최소공배수 [재귀 변환]\n난이도: Level 2\n함수 시그니처: def solution(arr)\n문제 설명:\nN개의 최소공배수 (재귀 함수만 사용)"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(arr):\n    def gcd(x, y):\n        return x if y == 0 else gcd(y, x % y)\n\n    def lcm(x, y):\n        return x * y // gcd(x, y)\n\n    def lcm_recursive(arr, index):\n        if index == len(arr) - 1:\n            return arr[index]\n        return lcm(arr[index], lcm_recursive(arr, index + 1))\n\n    return lcm_recursive(arr, 0)"
+      }
+    ]
+  },
+  {
+    "title": "[PCCP 기출문제] 4번 / 수레 움직이기 [규모 확장]",
+    "level": 3,
+    "task": "solution",
+    "evol_type": "scale",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: [PCCP 기출문제] 4번 / 수레 움직이기 [규모 확장]\n난이도: Level 3\n함수 시그니처: def solution(maze)\n문제 설명:\n변형 제목: [PCCP 기출문제] 4번"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(maze):\n    from collections import deque\n    \n    rows, cols = len(maze), len(maze[0])\n    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n    visited = set()\n    queue = deque([(0, 0)])\n    visited.add((0, 0))\n    \n    while queue:\n        x, y = queue.popleft()\n        if x == rows - 1 and y == cols - 1:\n            return True\n        \n        for dx, dy in directions:\n            nx, ny = x + dx, y + dy\n            if 0 <= nx < rows and 0 <= ny < cols and maze[nx][ny] == 0 and (nx, ny) not in visited:\n                visited.add((nx, ny))\n                queue.append((nx, ny))\n    \n    return False"
+      }
+    ]
+  },
+  {
+    "title": "연속된 부분 수열의 합 [제약 추가]",
+    "level": 2,
+    "task": "solution",
+    "evol_type": "constraint",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 연속된 부분 수열의 합 [제약 추가]\n난이도: Level 2\n함수 시그니처: def solution(sequence, k)\n문제 설명:\n변형문제설명: 연속된 부분 수열의 합"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(sequence, k):\n    left, current_sum, count = 0, 0, 0\n    for right in range(len(sequence)):\n        current_sum += sequence[right]\n        while current_sum > k:\n            current_sum -= sequence[left]\n            left += 1\n        if current_sum == k:\n            count += 1\n    return count"
+      }
+    ]
+  },
+  {
+    "title": "예상 대진표 [제약 추가]",
+    "level": 2,
+    "task": "solution",
+    "evol_type": "constraint",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 예상 대진표 [제약 추가]\n난이도: Level 2\n함수 시그니처: def solution(N, A, B)\n문제 설명:\n변형문제설명: 예상 대진표"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(N, A, B):\n    round = 0\n    while A != B:\n        A = (A + 1) // 2\n        B = (B + 1) // 2\n        round += 1\n    return round"
+      }
+    ]
+  },
+  {
+    "title": "디스크 컨트롤러 [제약 추가]",
+    "level": 3,
+    "task": "solution",
+    "evol_type": "constraint",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 디스크 컨트롤러 [제약 추가]\n난이도: Level 3\n함수 시그니처: def solution(jobs)\n문제 설명:\n변형문제설명: 디스크 컨트롤러"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(jobs):\n    jobs.sort(key=lambda x: x[0])\n    time, total_waiting_time, completed_jobs = 0, 0, 0\n    while completed_jobs < len(jobs):\n        available_jobs = [job for job in jobs if job[0] <= time and job not in completed_jobs]\n        if available_jobs:\n            job = min(available_jobs, key=lambda x: x[1])\n            time += job[1]\n            total_waiting_time += time - job[0]\n            completed_jobs += 1\n        else:\n            time += 1\n    return total_waiting_time // len(jobs)"
+      }
+    ]
+  },
+  {
+    "title": "배달 [제약 추가]",
+    "level": 2,
+    "task": "solution",
+    "evol_type": "constraint",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 배달 [제약 추가]\n난이도: Level 2\n함수 시그니처: def solution(N, road, K)\n문제 설명:\n변형문제설명: 배달"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(N, road, K):\n    import heapq\n    from collections import defaultdict\n\n    graph = defaultdict(list)\n    for u, v, w in road:\n        graph[u].append((v, w))\n        graph[v].append((u, w))\n\n    distances = [float('inf')] * (N + 1)\n    distances[1] = 0\n    priority_queue = [(0, 1)]\n\n    while priority_queue:\n        current_distance, current_node = heapq.heappop(priority_queue)\n\n        if current_distance > distances[current_node]:\n            continue\n\n        for neighbor, weight in graph[current_node]:\n            distance = current_distance + weight\n            if distance < distances[neighbor]:\n                distances[neighbor] = distance\n                heapq.heappush(priority_queue, (distance, neighbor))\n\n    return sum(1 for d in distances[1:] if d <= K)"
+      }
+    ]
+  },
+  {
+    "title": "모음사전 [규모 확장]",
+    "level": 2,
+    "task": "solution",
+    "evol_type": "scale",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 모음사전 [규모 확장]\n난이도: Level 2\n함수 시그니처: def solution(word)\n문제 설명:\n변형 문제 제목: 확장된 모음사전\n\n변형 문제 설명: 사전에서 알파벳 모음 'A', 'E', 'I', 'O', 'U'를 사용하여 만들 수 있는, 길이 15 이하의 모든 단어가 수록되어 있습니다. 주어진 단어 word가 사전에서 몇 번째 단어인지 반환하는 함수를 작성하세요. 이때, word의 길이는 1 이상 15 이하이며, 메모리 사용량은 O(1)로 제한됩니다. \n\n힌트: 각 자리에서 가능한 모음의 조합 수를 계산하여 해당 단어의 순서를 효율적으로 구할 수 있습니다. 반복문 대신 수학적 공식을 활용하여 중복 계산을 피하는 것이 중요합니다."
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(word):\n    vowels = 'AEIOU'\n    length = len(word)\n    total = 0\n    for i in range(length):\n        total += (5 ** (4 - i)) * vowels.index(word[i])\n    return total + 1 + sum(5 ** i for i in range(1, 5 - length))"
+      }
+    ]
+  },
+  {
+    "title": "할인 행사 [제약 추가]",
+    "level": 2,
+    "task": "solution",
+    "evol_type": "constraint",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 할인 행사 [제약 추가]\n난이도: Level 2\n함수 시그니처: def solution(want, number, discount)\n문제 설명:\n변형문제설명: 할인 행사"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(want, number, discount):\n    from collections import Counter\n    want_count = Counter(dict(zip(want, number)))\n    discount_count = Counter()\n    valid_days = 0\n    \n    for i in range(len(discount)):\n        discount_count[discount[i]] += 1\n        \n        if i >= 10:\n            discount_count[discount[i - 10]] -= 1\n            if discount_count[discount[i - 10]] == 0:\n                del discount_count[discount[i - 10]]\n        \n        if i >= 9 and all(discount_count[item] >= want_count[item] for item in want_count):\n            valid_days += 1\n            \n    return valid_days"
+      }
+    ]
+  },
+  {
+    "title": "표현 가능한 이진트리 [제약 추가]",
+    "level": 3,
+    "task": "solution",
+    "evol_type": "constraint",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 표현 가능한 이진트리 [제약 추가]\n난이도: Level 3\n함수 시그니처: def solution(numbers)\n문제 설명:\n변형문제설명: 표현 가능한 이진트리"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(numbers):\n    def is_full_binary_tree(n):\n        return (n & (n + 1)) == 0\n\n    count = 0\n    for number in numbers:\n        if is_full_binary_tree(number):\n            count += 1\n    return count"
+      }
+    ]
+  },
+  {
+    "title": "최댓값과 최솟값 [제약 추가]",
+    "level": 2,
+    "task": "solution",
+    "evol_type": "constraint",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 최댓값과 최솟값 [제약 추가]\n난이도: Level 2\n함수 시그니처: def solution(s)\n문제 설명:\n변형문제설명: 최댓값과 최솟값"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(s):\n    numbers = list(map(int, s.split()))\n    return f\"{min(numbers)} {max(numbers)}\""
+      }
+    ]
+  },
+  {
+    "title": "혼자서 하는 틱택토 [제약 추가]",
+    "level": 2,
+    "task": "solution",
+    "evol_type": "constraint",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 혼자서 하는 틱택토 [제약 추가]\n난이도: Level 2\n함수 시그니처: def solution(board)\n문제 설명:\n변형문제설명: 혼자서 하는 틱택토"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(board):\n    def check_winner(b):\n        for row in b:\n            if row.count('X') == 3:\n                return True\n        for col in range(3):\n            if all(b[row][col] == 'X' for row in range(3)):\n                return True\n        if b[0][0] == b[1][1] == b[2][2] == 'X' or b[0][2] == b[1][1] == b[2][0] == 'X':\n            return True\n        return False\n\n    x_count = sum(row.count('X') for row in board)\n    o_count = sum(row.count('O') for row in board)\n\n    if x_count < o_count or x_count > o_count + 1:\n        return 0\n    if check_winner(board) and x_count == o_count:\n        return 0\n    if check_winner(board) and x_count > o_count:\n        return 0\n    return 1"
+      }
+    ]
+  },
+  {
+    "title": "추억 점수 [재귀 변환]",
+    "level": 1,
+    "task": "solution",
+    "evol_type": "recursive",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: 추억 점수 [재귀 변환]\n난이도: Level 1\n함수 시그니처: def solution(name, yearning, photo)\n문제 설명:\n추억 점수 재귀적 계산"
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(name, yearning, photo):\n    def calculate_score(photo, index):\n        if index == len(photo):\n            return []\n        score = sum(yearning[name.index(p)] for p in photo[index] if p in name)\n        return [score] + calculate_score(photo, index + 1)\n\n    return calculate_score(photo, 0)"
+      }
+    ]
+  },
+  {
+    "title": "N으로 표현",
+    "level": 3,
+    "task": "solution",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: N으로 표현\n난이도: Level 3\n함수 시그니처: def solution(N, number)\n문제 설명:\n아래와 같이 5와 사칙연산만으로 12를 표현할 수 있습니다.\n\n12 = 5 + 5 + (5 / 5) + (5 / 5)\n12 = 55 / 5 + 5 / 5\n12 = (55 + 5) / 5\n\n5를 사용한 횟수는 각각 6,5,4 입니다. 그리고 이중 가장 작은 경우는 4입니다.\n이처럼 숫자 N과 number가 주어질 때, N과 사칙연산만 사용해서 표현 할 수 있는 방법 중 N 사용횟수의 최솟값을 return 하도록 solution 함수를 작성하세요.\n\n제한사항\nN은 1 이상 9 이하입니다.\nnumber는 1 이상 32,000 이하입니다.\n수식에는 괄호와 사칙연산만 가능하며 나누기 연산에서 나머지는 무시합니다.\n최솟값이 8보다 크면 -1을 return 합니다.\n입출력 예\nN\tnumber\treturn\n5\t12\t4\n2\t11\t3\n입출력 예 설명\n\n예제 #1\n문제에 나온 예와 같습니다.\n\n예제 #2\n11 = 22 / 2와 같이 2를 3번만 사용하여 표현할 수 있습니다.\n\n※ 공지 - 2020년 9월 3일 테스트케이스가 추가되었습니다."
+      },
+      {
+        "role": "assistant",
+        "content": "from itertools import product\n\ndef solution(N, number):\n    material = {1 : [N]}\n    if N == number: return 1\n    \n    for i in range(2, 9):\n        material[i] = [int(str(N)*i)]\n        for j in range(1, (i//2)+1):\n            for k in list(product(material[j], material[i-j])):\n                a, b = k\n                if not a + b in material[i]:\n                    material[i].append(a + b)\n                if not a - b in material[i]:\n                    material[i].append(a - b)\n                if not b - a in material[i]:\n                    material[i].append(b - a)\n                if not a * b in material[i]:\n                    material[i].append(a * b)\n                if b != 0 and a % b == 0 and not a / b in material[i]:\n                    material[i].append(a / b)\n                if a != 0 and b % a == 0 and not b / a in material[i]:\n                    material[i].append(b / a)\n        if number in material[i]:\n            return i\n    return -1"
+      }
+    ]
+  },
+  {
+    "title": "N으로 표현",
+    "level": 3,
+    "task": "solution",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
+      },
+      {
+        "role": "user",
+        "content": "다음 프로그래머스 문제의 Python 정답 코드를 작성해주세요.\n\n제목: N으로 표현\n난이도: Level 3\n함수 시그니처: def solution(N, number)\n문제 설명:\n아래와 같이 5와 사칙연산만으로 12를 표현할 수 있습니다.\n\n12 = 5 + 5 + (5 / 5) + (5 / 5)\n12 = 55 / 5 + 5 / 5\n12 = (55 + 5) / 5\n\n5를 사용한 횟수는 각각 6,5,4 입니다. 그리고 이중 가장 작은 경우는 4입니다.\n이처럼 숫자 N과 number가 주어질 때, N과 사칙연산만 사용해서 표현 할 수 있는 방법 중 N 사용횟수의 최솟값을 return 하도록 solution 함수를 작성하세요.\n\n제한사항\nN은 1 이상 9 이하입니다.\nnumber는 1 이상 32,000 이하입니다.\n수식에는 괄호와 사칙연산만 가능하며 나누기 연산에서 나머지는 무시합니다.\n최솟값이 8보다 크면 -1을 return 합니다.\n입출력 예\nN\tnumber\treturn\n5\t12\t4\n2\t11\t3\n입출력 예 설명\n\n예제 #1\n문제에 나온 예와 같습니다.\n\n예제 #2\n11 = 22 / 2와 같이 2를 3번만 사용하여 표현할 수 있습니다.\n\n※ 공지 - 2020년 9월 3일 테스트케이스가 추가되었습니다."
+      },
+      {
+        "role": "assistant",
+        "content": "def solution(N, number):\n    def blend(number1, number2):\n        blended = set()\n        for num1 in number1:\n            for num2 in number2:\n                blended.add(num1 + num2)\n                blended.add(num1 - num2)\n                blended.add(num1 * num2)\n                if num2 != 0:\n                    blended.add(num1 // num2)\n        return blended\n\n    dp = [set() for _ in range(8 + 1)]\n    for count in range(1, 8 + 1):\n        dp[count].add(int(str(N) * count))\n        for i in range(1, count):\n            dp[count] |= blend(dp[i], dp[count - i])\n        print(dp[count])\n        if number in dp[count]:\n            return count\n    return -1"
+      }
+    ]
+  }
+]

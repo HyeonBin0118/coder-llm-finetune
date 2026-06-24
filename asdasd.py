@@ -1,22 +1,21 @@
 import json
 
-data = json.load(open('data/dataset_evol_clean.json', encoding='utf-8'))
+data = []
+with open('data/train_selected.jsonl', encoding='utf-8') as f:
+    for line in f:
+        data.append(json.loads(line))
 
-# 제목별로 solution이 남아있는지 확인
-titles_with_solution = {d['title'] for d in data if d.get('task') == 'solution'}
+print(f"전체: {len(data)}개\n")
 
-before = len(data)
-final_data = []
-orphan_hints = 0
+# task별 분포
+from collections import Counter
+tasks = Counter(d.get('task', 'unknown') for d in data)
+print("task별 분포:", tasks)
 
-for item in data:
-    if item.get('evol_type') == 'constraint' and item.get('task') == 'hint':
-        if item['title'] not in titles_with_solution:
-            orphan_hints += 1
-            continue
-    final_data.append(item)
+# solution 타입만 모아서 별도 파일로 저장 (보기 편하게)
+solutions = [d for d in data if d.get('task') == 'solution']
+with open('solutions_preview.json', 'w', encoding='utf-8') as f:
+    json.dump(solutions[:20], f, ensure_ascii=False, indent=2)
 
-print(f"고아 hint 제외: {orphan_hints}개")
-print(f"최종: {len(final_data)}개")
-
-json.dump(final_data, open('data/dataset_evol_clean.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+print(f"\nsolution 타입: {len(solutions)}개")
+print("→ solutions_preview.json에 처음 20개 저장함 (VS Code나 메모장으로 열어서 확인)")

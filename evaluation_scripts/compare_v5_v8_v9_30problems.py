@@ -1,7 +1,7 @@
 """
-v4 vs v5 vs DPO vs v8 모델 비교 평가 (30문제 확장판)
-- Level 1 문제 15개, Level 2 문제 15개 (총 30개)
-- 결과: evaluation/compare_30problems.json
+v5 vs v8 vs v9 모델 비교 평가 (30문제)
+- v9: 중복 제거 + print문 정리된 데이터(1,278개)로 학습
+- 결과: evaluation/compare_v5_v8_v9_30problems.json
 """
 import json
 import time
@@ -11,14 +11,12 @@ from pathlib import Path
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
 
-# ───────────── 설정 ─────────────
 BASE_MODEL_ID = "Qwen/Qwen2.5-Coder-7B-Instruct"
-V4_DIR        = "output/qwen-coder-finetune-v4"
 V5_DIR        = "output/qwen-coder-finetune-v5"
-DPO_DIR       = "output/qwen-coder-finetune-dpo"
 V8_DIR        = "output/qwen-coder-finetune-v8"
+V9_DIR        = "output/qwen-coder-finetune-v9"
 DATA_PATH     = "data/github_solutions.json"
-OUTPUT_PATH   = "evaluation/compare_30problems.json"
+OUTPUT_PATH   = "evaluation/compare_v5_v8_v9_30problems.json"
 
 SYSTEM_PROMPT = "당신은 프로그래머스 코딩 테스트 문제를 도와주는 어시스턴트입니다. 문제를 분석하고 힌트, 접근법, 정답 코드를 단계별로 제공합니다."
 
@@ -37,7 +35,6 @@ SOLUTION_PROMPT = """다음 프로그래머스 문제의 Python 정답 코드를
 문제 설명:
 {description}"""
 
-# 기존 10문제 + 신규 20문제 = 30문제 제목 고정
 EXISTING_10 = [
     "가장 많이 받은 선물", "[PCCP 기출문제] 1번 / 붕대 감기", "[PCCE 기출문제] 9번 / 이웃한 칸",
     "[PCCE 기출문제] 10번 / 데이터 분석", "달리기 경주", "서버 증설 횟수",
@@ -54,7 +51,6 @@ NEW_LEVEL2_10 = [
 ALL_30 = EXISTING_10 + NEW_LEVEL1_10 + NEW_LEVEL2_10
 
 
-# ───────────── 모델 로드 ─────────────
 def load_model(adapter_dir: str, label: str):
     print(f"{label} 모델 로드 중...")
     bnb_config = BitsAndBytesConfig(
@@ -72,15 +68,7 @@ def load_model(adapter_dir: str, label: str):
         device_map={"": 0},
         trust_remote_code=True,
     )
-
-    if label == "dpo":
-        # DPO는 v5 기반으로 학습됐으므로 base -> v5 -> dpo 순으로 얹는다
-        model = PeftModel.from_pretrained(base_model, V5_DIR)
-        model = model.merge_and_unload()
-        model = PeftModel.from_pretrained(model, adapter_dir)
-    else:
-        model = PeftModel.from_pretrained(base_model, adapter_dir)
-
+    model = PeftModel.from_pretrained(base_model, adapter_dir)
     model.eval()
     print(f"{label} 로드 완료")
     return model, tokenizer
@@ -91,7 +79,6 @@ def unload_model(model):
     torch.cuda.empty_cache()
 
 
-# ───────────── 추론 ─────────────
 def ask_model(model, tokenizer, prompt: str) -> tuple[str, int]:
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -121,7 +108,6 @@ def ask_model(model, tokenizer, prompt: str) -> tuple[str, int]:
     return tokenizer.decode(generated, skip_special_tokens=True).strip(), elapsed_ms
 
 
-# ───────────── 유틸 ─────────────
 def extract_sig(solutions: list) -> str:
     if not solutions:
         return "def solution(...)"
@@ -151,7 +137,6 @@ def check_param_accuracy(response: str, sig: str) -> bool:
     return set(expected_params) == set(actual_params)
 
 
-# ───────────── 메인 ─────────────
 def main():
     data = json.loads(Path(DATA_PATH).read_text(encoding="utf-8"))
     title_map = {d["title"]: d for d in data}
@@ -166,7 +151,7 @@ def main():
     print(f"평가 문제: {len(problems)}개\n")
 
     results = []
-    versions = [("v4", V4_DIR), ("v5", V5_DIR), ("dpo", DPO_DIR), ("v8", V8_DIR)]
+    versions = [("v5", V5_DIR), ("v8", V8_DIR), ("v9", V9_DIR)]
 
     for version, adapter_dir in versions:
         model, tokenizer = load_model(adapter_dir, version)
@@ -193,7 +178,7 @@ def main():
 
                 if task == "solution":
                     entry[version]["param_ok"] = check_param_accuracy(resp, sig)
-                    entry[version]["code_correct"] = None  # 수동 채점
+                    entry[version]["code_correct"] = None
 
                 print(f"  {task}: {ms}ms")
 
@@ -207,7 +192,7 @@ def main():
     )
     print(f"결과 저장 → {OUTPUT_PATH}")
 
-    print("\n=== 30문제 비교 요약 ===")
+    print("\n=== v5 vs v8 vs v9 비교 요약 ===")
     for task in ["hint", "solution"]:
         for v, _ in versions:
             avg = sum(r[v].get(f"{task}_ms", 0) for r in results) // len(results)
@@ -216,8 +201,6 @@ def main():
     for v, _ in versions:
         param_ok = sum(1 for r in results if r[v].get("param_ok"))
         print(f"  파라미터 정확도 [{v}]: {param_ok}/{len(results)}")
-
-    print("\n주의: code_correct 필드는 null로 저장됨. 직접 검토 후 채점 필요.")
 
 
 if __name__ == "__main__":
