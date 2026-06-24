@@ -13,4 +13,6 @@ output/
 data/dataset_raw.json
 data/dataset_failed.json
 data/dataset_validated.json
-data/dataset_dpo_v2.json
+data/dataset_dpo_v2.jsonasdasd.py 
+scratch_*.py 
+temp_*.py 
