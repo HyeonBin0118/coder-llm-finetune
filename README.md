@@ -4,7 +4,7 @@ GPT-4o-mini(유료 API)로 동작하는 [ai-coding-test-assistant](https://githu
 
 **핵심 질문:** "작은 모델(7B)도 좁은 도메인에서 대형 API(GPT-4o-mini)를 대체할 수 있는가?"
 
-RTX 3060 12GB 단일 GPU 환경에서 Qwen2.5-Coder-7B-Instruct를 QLoRA로 파인튜닝하고, 데이터·프롬프트를 한 번에 한 변수씩 변경하며 성능 변화를 정량 측정했다. 논문 기반 데이터 선별 전략(IFD + K-Means)으로 v5를 만든 뒤, DPO·LoRA rank 증대·데이터 정제·데이터 규모 확장을 차례로 시도했다. 10문제 평가에서는 모든 추가 시도가 v5에 못 미쳤지만, **평가셋을 30문제로 확장하자 v5와 v8(데이터 확장)의 차이는 거의 사라졌다** — 10문제라는 작은 표본의 통계적 노이즈가 상당 부분을 설명한다는 것을 직접 검증했다.
+RTX 3060 12GB 단일 GPU 환경에서 Qwen2.5-Coder-7B-Instruct를 QLoRA로 파인튜닝하고, 데이터·프롬프트를 한 번에 한 변수씩 변경하며 성능 변화를 정량 측정했다. 논문 기반 데이터 선별 전략(IFD + K-Means)으로 v5를 만든 뒤, DPO·LoRA rank 증대·데이터 정제·데이터 규모 확장·중복 제거(v9)까지 총 6가지 추가 개선을 시도했다. **30문제로 평가셋을 확장한 결과 v5, v8, v9는 통계적으로 동급(43~57%) 성능**이었고, 이는 현재 조건(7B 모델, 1,300~1,700개 데이터)에서 데이터 조정만으로는 일정 구간을 벗어나기 어렵다는 것을 시사한다. 이에 **v5를 최종 모델로 확정**했다.
 
 > 실험 설계 의도, 실패 분석, 회고 등 상세 기록은 [PLAN.md](./PLAN.md) 참조.
 
@@ -14,32 +14,36 @@ RTX 3060 12GB 단일 GPU 환경에서 Qwen2.5-Coder-7B-Instruct를 QLoRA로 파�
 
 ![버전별 성능 추이](evaluation/version_growth.png)
 
-**10문제 평가 (v1~v8 전체 비교, 학습 단계의 1차 검증용)**
+**10문제 평가 (학습 단계의 1차 검증용)**
 
-| 항목 | v1 | v4 | v5 | DPO v1/v2 | v6 (rank32) | v7 (데이터정제) | v8 (데이터확장) |
-|---|---|---|---|---|---|---|---|
-| val/eval loss | 0.552 | 0.203 | 0.222 | - | 0.2096 | 0.2298 | 0.2343 |
-| token accuracy | 87.8% | 91.7%* | **94.1%** | - | - | - | - |
-| 파라미터 정확도 | 실패 | 8/10 | **10/10** | 9~10/10 | 10/10 | - | 9/10 |
-| 코드 완전 정답 | 0/10 | 0/10 | **3/10** | 2/10 | 2/10 | 평가 중단 | 2/10 |
+| 항목 | v1 | v4 | v5 | DPO v1/v2 | v6 (rank32) | v7 (데이터정제) | v8 (데이터확장) | v9 (중복제거) |
+|---|---|---|---|---|---|---|---|---|
+| val/eval loss | 0.552 | 0.203 | 0.222 | - | 0.2096 | 0.2298 | 0.2343 | 0.262 |
+| token accuracy | 87.8% | 91.7%* | **94.1%** | - | - | - | - | - |
+| 파라미터 정확도 | 실패 | 8/10 | **10/10** | 9~10/10 | 10/10 | - | 9/10 | - |
+| 코드 완전 정답 (10문제) | 0/10 | 0/10 | **3/10** | 2/10 | 2/10 | 평가 중단 | 2/10 | - |
 
 *v4 token accuracy는 동일 `val.jsonl` 기준으로 재측정한 값(91.7%)이다. 과거 기록된 95.1%는 측정 방식이 명확하지 않아, `compute_token_accuracy.py`로 재현 가능한 값으로 대체했다.
 
-**30문제 확장 평가 (10문제 평가의 통계적 한계를 보완)**
+**30문제 확장 평가 (최종 판단 기준 — 10문제 평가의 통계적 한계를 보완)**
 
-| 모델 | 코드 완전 정답 (30문제) | 비율 |
+| 모델 | 1차 평가 | 2차 평가(v9 포함) |
 |---|---|---|
-| v4 | 9/30 | 30% |
-| **v5** | **17/30** | **57%** |
-| dpo | 13/30 | 43% |
-| **v8** | **16/30** | **53%** |
+| v4 | 9/30 (30%) | - |
+| **v5** | 17/30 (**57%**) | 14/30 (**47%**) |
+| dpo | 13/30 (43%) | - |
+| v8 | 16/30 (53%) | 13/30 (43%) |
+| v9 | - | 14/30 (47%) |
+
+*같은 모델(v5, v8)을 두 번 평가했는데 실행마다 약 10%p씩 다르게 나왔다. temperature 샘플링과 채점 기준의 미세한 차이 때문으로 추정되며, 절대값보다 모델 간 상대적 순위로 판단해야 한다.
 
 - **4차례 반복 실험(v1→v4)** 으로 val loss 63% 감소, 파라미터 정확도 문제 완전 해결
 - **GPT-4o-mini 정량 비교:** 힌트 태스크에서 응답 속도 15% 우위, 코드 생성에서는 완전 대체 실패
-- **논문 기반 개선(v5):** Evol-Instruct 데이터 확장(681→3,848) + IFD+K-Means 40% 선별 → 코드 정답 0→3개(10문제 기준), 30문제 기준 57%로 가장 높은 정답률, 파라미터 정확도 100%, token accuracy 94.1% 달성
-- **DPO/v6/v7/v8 (10문제 기준):** 전부 v5(3/10)에 못 미치는 2/10 또는 평가 중단. 응답 시간이 v5 대비 2.5~6배 급증하는 공통 부작용도 관찰
+- **논문 기반 개선(v5):** Evol-Instruct 데이터 확장(681→3,848) + IFD+K-Means 40% 선별 → 코드 정답 0→3개(10문제 기준), 30문제 기준 가장 높은 정답률, 파라미터 정확도 100%, token accuracy 94.1% 달성
+- **DPO/v6/v7/v8/v9 (10문제 기준):** 대부분 v5(3/10)에 못 미치는 2/10 또는 평가 중단. 응답 시간이 v5 대비 2.5~6배 급증하는 공통 부작용도 관찰
 - **v5 재현 실험(v5-repro):** git에서 v5 원본 데이터를 복원해 동일 설정으로 재학습한 결과 eval loss가 0.222 → 0.2229로 거의 일치, v5의 학습 결과가 재현 가능함을 직접 확인
-- **30문제로 확장 재평가한 결과, v5(57%)와 v8(53%)의 차이는 4%p로 줄어 통계적으로 거의 구분되지 않는 수준이 됐다.** "v8이 v5보다 못하다"는 10문제 기준의 결론은 표본 크기의 한계에서 비롯된 과대해석이었을 가능성이 높다. 다만 v4(30%)와의 차이는 30문제에서도 유지되어, 논문 기반 개선(v5)의 효과 자체는 노이즈가 아닌 것으로 판단된다
+- **30문제로 확장 재평가한 결과, v5/v8/v9는 모두 43~57% 구간에서 겹쳐 통계적으로 거의 구분되지 않는다.** "추가 시도가 v5보다 못하다"는 10문제 기준의 결론은 표본 크기의 한계에서 비롯된 과대해석이었을 가능성이 높다. 다만 v4(30%)와의 차이는 일관되게 유지되어, 논문 기반 개선(v5)의 효과 자체는 노이즈가 아닌 것으로 판단된다
+- **최종 결론:** 현재 조건(7B + QLoRA + 1,300~1,700개 데이터)에서는 데이터 양·품질을 조정하는 정도로는 40~55% 구간을 벗어나기 어렵다는 것을 확인했고, **v5를 최종 모델로 확정**했다
 
 ---
 
@@ -233,7 +237,37 @@ eval loss가 거의 일치해, **v5의 학습 결과는 재현 가능함을 확�
 
 10문제 기준으로 10%p 차이였던 v5 vs v8이, 30문제 기준으로는 4%p 차이로 좁혀져 **통계적으로 거의 구분되지 않는 수준**이 됐다. **"v8이 v5보다 못하다"는 기존 결론은 표본 크기의 한계에서 비롯된 과대해석이었을 가능성이 높다.** 다만 v4(30%)와의 차이는 30문제에서도 유지되어, v1→v5 구간의 개선(논문 기반 데이터 선별)은 노이즈가 아닌 실재하는 효과로 판단된다. v6, v7은 시간 제약상 30문제로 재검증하지 못해 동일한 재평가가 필요한 한계로 남는다.
 
-상세 분석은 [PLAN.md](./PLAN.md) Phase 10~13 참조.
+### 데이터 중복 제거 및 경량 정제 (v9)
+
+v8 데이터 파이프라인을 재실행하는 과정에서 1,601개의 IFD 선별 결과를 직접 검토했고, 두 가지 문제를 발견했다: (1) 같은 문제의 GitHub 풀이가 여러 개 중복 포함됨, (2) 일부 코드에 `print()` 디버깅 라인이 남아있음.
+
+| 항목 | 정제 전(1,601개) | 정제 후(1,278개) |
+|---|---|---|
+| 중복 제목으로 제외된 solution | - | 323개 (30%) |
+| print() 라인 제거 | - | 11개 |
+
+중복 제거 비중이 압도적으로 컸다 — 인기 있는 쉬운 문제일수록 GitHub 풀이가 여러 개 중복 포함되어, 데이터의 "양"과 실제 "고유 문제 다양성"이 달랐다는 것을 확인했다.
+
+| 항목 | v5 | v8 | v9 |
+|---|---|---|---|
+| 학습 데이터 | 1,381 | 1,685 | 1,278 (중복제거+정제) |
+| eval loss | 0.222 | 0.2343 | **0.262** (가장 악화) |
+| 학습 시간 | 34시간 18분 | 8시간 32분 | 6시간 11분 |
+
+### v5 vs v8 vs v9 — 최종 30문제 동시 비교
+
+| 항목 | v5 | v8 | v9 |
+|---|---|---|---|
+| solution 평균 응답시간 | 44,129ms | 58,064ms | 63,768ms |
+| 코드 완전 정답 (30문제) | 14/30 (47%) | 13/30 (43%) | 14/30 (47%) |
+
+응답 시간은 v5 < v8 < v9 순으로 점점 느려졌고(v9는 30문제 중 11개가 max_new_tokens를 거의 다 채움), eval loss가 가장 나빴던 v9가 응답 시간도 가장 느려 두 지표 간 일관성이 있었다. 그러나 **코드 완전 정답률은 v5·v9가 47%로 동률, v8이 43%로 셋 다 통계적으로 구분되지 않는 수준**이었다. (참고: 같은 모델을 두 번 평가했을 때도 10%p 정도 편차가 있어, 이 수치들은 절대값보다 상대적 위치로 해석해야 한다.)
+
+### 최종 결론
+
+DPO, v6, v7, v8, v9, repetition_penalty까지 6가지 추가 개선을 시도한 결과, **현재 조건(Qwen2.5-Coder-7B + QLoRA r=16 + 4bit 양자화 + 1,300~1,700개 데이터 + RTX 3060)에서는 데이터 양·품질을 조정하는 정도로는 코드 생성 정답률이 40~55% 구간을 벗어나지 못한다**는 결론에 도달했다. 이 구간을 넘으려면 모델 크기, 데이터 규모의 차수(10배 이상), 또는 코드 실행 기반 검증 같은 더 근본적인 변화가 필요하다고 판단해, **v5를 최종 모델로 확정**하고 추가 학습 시도는 이 프로젝트 범위에서 마무리했다.
+
+상세 분석은 [PLAN.md](./PLAN.md) Phase 10~14 참조.
 
 ---
 
@@ -256,7 +290,7 @@ coder-llm-finetune/
 │   ├── rebuild_dpo_dataset.py      # DPO 데이터 재구성 (v2)
 │   ├── finalize_dpo_v2.py          # DPO v2 데이터 정제
 │   └── finalize_sft_data.py        # SFT 학습 데이터 정제 (v7)
-├── output/                         # LoRA 가중치 (v1~v8, dpo)
+├── output/                         # LoRA 가중치 (v1~v9, dpo)
 ├── evaluation/                     # 비교 평가 결과 JSON + 성능 그래프
 ├── evaluation_scripts/             # 비교 평가 스크립트 모음
 │   ├── compare_eval.py             # GPT vs 로컬 정량 비교
@@ -265,12 +299,21 @@ coder-llm-finetune/
 │   ├── compare_v4_v5_dpo_v2.py     # v5 vs DPO v2 비교
 │   ├── compare_v5_v6.py            # v5 vs v6 비교
 │   ├── compare_v5_v7.py            # v5 vs v7 비교
+│   ├── compare_v5_v8.py            # v5 vs v8 비교 (10문제)
+│   ├── compare_v8_reppenalty.py    # v8 repetition_penalty 검증
+│   ├── compare_30problems.py       # v4/v5/dpo/v8 30문제 비교
+│   ├── compare_v5_v8_v9_30problems.py # v5/v8/v9 30문제 최종 비교
 │   └── compute_token_accuracy.py   # token accuracy 동일 기준 재평가
-├── train.py                        # QLoRA 학습 (v1~v5, v8)
-├── train_dpo.py                    # DPO 학습 (v1)
-├── train_dpo_v2.py                 # DPO 학습 (v2)
-├── train_v6.py                     # v6 학습 (rank 32)
-├── train_v7.py                     # v7 학습 (데이터 정제)
+├── train_scripts/                  # 학습 스크립트 모음
+│   ├── train.py                    # QLoRA 학습 (v1~v5)
+│   ├── train_dpo.py                # DPO 학습 (v1)
+│   ├── train_dpo_v2.py             # DPO 학습 (v2)
+│   ├── train_v6.py                 # v6 학습 (rank 32)
+│   ├── train_v7.py                 # v7 학습 (데이터 정제)
+│   ├── train_v8.py                 # v8 학습 (데이터 규모 확장)
+│   ├── train_v9.py                 # v9 학습 (중복 제거 + 경량 정제)
+│   └── train_v5_repro.py           # v5 재현 실험
+├── select_30_problems.py           # 30문제 평가셋 선정
 ├── patch.py                        # trl 인코딩 패치 (Windows)
 ├── requirements.txt
 └── PLAN.md                         # 실험 설계·회고 상세 기록
@@ -302,14 +345,14 @@ python data/collect_github.py
 python data/build_dataset.py
 python data/convert_to_jsonl.py
 python patch.py
-python train.py
+python train_scripts/train.py
 python evaluation_scripts/compare_eval.py
 
 # v5 (논문 기반 개선, 최고 성능)
 python data/evol_dataset.py
 python data/merge_dataset.py
 python data/ifd_select.py
-python train.py
+python train_scripts/train.py
 python evaluation_scripts/compare_v4_v5.py
 python evaluation_scripts/compute_token_accuracy.py
 
@@ -319,15 +362,15 @@ conda activate dpo_env
 pip install torch==2.1.2+cu118 torchvision==0.16.2+cu118 --index-url https://download.pytorch.org/whl/cu118
 pip install transformers==4.40.0 peft==0.10.0 trl==0.11.4 accelerate==0.27.2 bitsandbytes==0.43.0 datasets rich python-dotenv
 python data/generate_dpo.py
-python train_dpo.py
+python train_scripts/train_dpo.py
 conda activate finetune_env
 python evaluation_scripts/compare_v4_v5_dpo.py
 
 # v6, v7 (기각된 시도)
-python train_v6.py
+python train_scripts/train_v6.py
 python evaluation_scripts/compare_v5_v6.py
 python data/finalize_sft_data.py
-python train_v7.py
+python train_scripts/train_v7.py
 python evaluation_scripts/compare_v5_v7.py
 
 # v8 (데이터 규모 확장)
@@ -341,18 +384,25 @@ python data/convert_to_jsonl.py
 python data/evol_dataset.py
 python data/merge_dataset.py       # V2_PATH를 dataset_v3.json으로 수정
 python data/ifd_select.py
-python train_v8.py
+python train_scripts/train_v8.py
 python evaluation_scripts/compare_v5_v8.py
 python evaluation_scripts/compare_v8_reppenalty.py
 
 # v5 재현 실험 (v5 원본 데이터를 git에서 복원 후 재학습)
 git show <v5_data_commit>:data/train_selected.jsonl > data/train_selected_v5_original.jsonl
 git show <v5_data_commit>:data/val.jsonl > data/val_v5_original.jsonl
-python train_v5_repro.py
+python train_scripts/train_v5_repro.py
 
 # 30문제 확장 평가 (v4, v5, dpo, v8 일괄 비교)
 python select_30_problems.py
 python evaluation_scripts/compare_30problems.py
+
+# v9 (데이터 중복 제거 + 경량 정제)
+python data/clean_train_selected.py   # train_selected.jsonl 중복 제거 + print() 정리
+python train_scripts/train_v9.py
+
+# v5 vs v8 vs v9 최종 30문제 비교
+python evaluation_scripts/compare_v5_v8_v9_30problems.py
 ```
 
 ---
