@@ -29,6 +29,7 @@ GPT-4o-mini(유료 API)로 동작하는 ai-coding-test-assistant를 도메인 �
 | 12 | 학습 데이터 규모 확장 (v8) | 완료 |
 | 13 | v5 재현 실험 및 30문제 확장 평가 | 완료 |
 | 14 | 경량 데이터 정제(중복 제거) 및 v9 학습, 최종 종합 평가 | 완료 |
+| 15 | ai-coding-test-assistant 실제 연동 (Provider 토글) | 완료 |
 
 ---
 
@@ -655,6 +656,48 @@ v5, v8, v9는 30문제 기준으로 모두 43~57% 범위에서 겹치며, 이는
 
 ---
 
+## Phase 15 — ai-coding-test-assistant 실제 연동
+
+### 배경
+
+v5를 최종 모델로 확정한 뒤, 평가만으로 끝내지 않고 실제로 GPT-4o-mini로 동작하던 다른 프로젝트(ai-coding-test-assistant)에 연결해 "Provider 전환 가능한 구조"까지 완성하기로 했다.
+
+### vLLM 시도 → Windows 호환성 한계 → 자체 구현으로 전환
+
+처음에는 vLLM 서버로 서빙하는 계획을 세웠다(LoRA merge → AWQ 4bit 양자화 → vLLM 기동). `merge_v5.py`로 merge까지는 문제없이 진행했으나, `autoawq` 설치 단계에서 빌드 의존성 문제(`ModuleNotFoundError: No module named 'torch'`, 빌드 격리 환경에서 torch를 못 찾는 문제)로 막혔다.
+
+이 에러는 단순 설치 이슈가 아니라 더 근본적인 문제였다. vLLM과 AutoAWQ는 Linux/WSL2 환경을 기준으로 만들어져 있어, Windows 네이티브 환경에서는 `triton`, CUDA 커널 컴파일 등에서 같은 종류의 문제가 계속 반복될 가능성이 높았다. 여기서 에러를 하나씩 고치며 계속 시도하기보다, 방향 자체를 전환하는 게 맞다고 판단했다.
+
+### 해결: 자체 OpenAI 호환 서버 (`serve_v5.py`)
+
+vLLM 없이, FastAPI로 `/v1/chat/completions` 엔드포인트 하나만 직접 구현한 경량 서버를 만들었다. 모델 로딩은 학습·평가 단계에서 이미 검증된 `transformers + bitsandbytes` 4bit 방식을 그대로 재사용해, 추가 컴파일 의존성이 전혀 없다. 동기 응답과 SSE 스트리밍(OpenAI 청크 형식) 둘 다 구현했다.
+
+`merge_v5.py`, `quantize_v5_awq.py`는 더 이상 필요 없어 제거했다.
+
+### ai-coding-test-assistant 측 변경
+
+기존 `BaseLLMClient` 추상화(`get_hint`, `get_approach`, `get_solution`, `ask` 4개 메서드)를 그대로 활용해 `LocalClient`를 추가했다. `openai_client.py`의 프롬프트(`HINT_PROMPT`, `APPROACH_PROMPT` 등)를 그대로 import해서 재사용하고, `AsyncOpenAI(base_url=...)`의 `base_url`만 `serve_v5.py`의 로컬 엔드포인트로 바꿔서 동일한 인터페이스를 구현했다.
+
+`backend/config.py`에 `LOCAL_LLM_BASE_URL`, `LOCAL_LLM_MODEL` 환경변수를 추가하고(기존에 `LLM_PROVIDER`가 중복 선언되어 있던 버그도 같이 정리), `backend/main.py`에 `elif LLM_PROVIDER == "local":` 분기를 추가했다.
+
+### 검증
+
+```bash
+curl http://localhost:8001/health
+# {"status":"ok","model_loaded":true}
+
+curl -X POST http://localhost:8000/hint -d @test_hint.json
+# {"content":"- `a + b` — 두 수의 합을 계산하여 반환\n...", "provider":"local"}
+```
+
+`provider: "local"`로 정상 응답이 왔고, v5가 생성한 힌트가 OpenAIClient용으로 작성된 프롬프트 형식(키워드+짧은 표현식, 설명 없이 목록만)에도 잘 맞춰 나왔다. `.env`의 `LLM_PROVIDER` 값(`openai`/`local`)만 바꾸면 두 모델이 토글된다.
+
+### 기본값 정책
+
+v5의 코드 정답률(43~57%)이 GPT-4o-mini보다 낮다는 것을 이미 30문제 평가로 확인했으므로, ai-coding-test-assistant의 **기본 Provider는 `openai`로 유지**했다. `local`은 무료/오프라인 동작과 "Provider 전환 가능한 아키텍처"를 증명하는 옵션으로 남겨뒀다. 성능이 부족한 모델을 무리하게 기본값으로 끼워 넣지 않고, 검증된 사실에 맞는 위치에 두는 것을 우선했다.
+
+---
+
 ## 핵심 발견 (회고)
 
 1. train/val loss는 실제 품질을 보장하지 않는다. v1은 loss 0.552로 잘 학습된 듯 보였으나 출력은 사용 불가 수준이었다.
@@ -686,6 +729,8 @@ v5, v8, v9는 30문제 기준으로 모두 43~57% 범위에서 겹치며, 이는
 14. 데이터의 "양"과 "다양성"은 다른 개념이다. v8의 학습 데이터(1,685개)에는 인기 있는 쉬운 문제의 GitHub 풀이가 여러 개씩 중복 포함되어 있었고, 중복을 제거하니 실제 고유 문제 수는 30% 줄었다(1,073→750개 solution). 샘플 수가 많다고 해서 모델이 그만큼 더 다양한 패턴을 배우는 것은 아니라는 것을 직접 확인했다. 다만 이 중복을 제거한 v9도 v5/v8과 동급 성능에 그쳐, 이번 경우엔 다양성 문제가 성능의 결정적 제약은 아니었다는 것도 함께 알게 됐다.
 
 15. 같은 모델을 평가해도 실행마다 결과가 달라질 수 있다(temperature 샘플링, 채점자의 엄격도 차이). Phase 13의 30문제 평가(v5 57%, v8 53%)와 Phase 14의 30문제 평가(v5 47%, v8 43%)는 같은 모델, 같은 평가셋임에도 약 10%p씩 다르게 나왔다. 절대적인 숫자 하나에 매달리기보다, 여러 모델 간의 "상대적 순서와 격차"를 보는 것이 더 안정적인 결론으로 이어진다는 것을 알게 됐다.
+
+16. 서빙 인프라(vLLM)가 막히면, 그 인프라가 보장하는 "인터페이스"만 직접 구현해도 충분할 수 있다. vLLM 전체를 Windows에 억지로 맞추려 하지 않고, 실제로 필요했던 건 "OpenAI 호환 `/v1/chat/completions` 엔드포인트" 하나였다는 점을 인식하고 나서, 이미 검증된 추론 코드(4bit 로딩) 위에 얇은 FastAPI 레이어만 얹어 같은 효과를 훨씬 적은 의존성으로 얻었다. 도구 자체보다 그 도구가 제공하는 "계약(인터페이스)"이 무엇인지 파악하는 게 더 중요할 때가 있다.
 
 ---
 

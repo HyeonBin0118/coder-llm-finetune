@@ -4,7 +4,7 @@ GPT-4o-mini(유료 API)로 동작하는 [ai-coding-test-assistant](https://githu
 
 **핵심 질문:** "작은 모델(7B)도 좁은 도메인에서 대형 API(GPT-4o-mini)를 대체할 수 있는가?"
 
-RTX 3060 12GB 단일 GPU 환경에서 Qwen2.5-Coder-7B-Instruct를 QLoRA로 파인튜닝하고, 데이터·프롬프트를 한 번에 한 변수씩 변경하며 성능 변화를 정량 측정했다. 논문 기반 데이터 선별 전략(IFD + K-Means)으로 v5를 만든 뒤, DPO·LoRA rank 증대·데이터 정제·데이터 규모 확장·중복 제거(v9)까지 총 6가지 추가 개선을 시도했다. **30문제로 평가셋을 확장한 결과 v5, v8, v9는 통계적으로 동급(43~57%) 성능**이었고, 이는 현재 조건(7B 모델, 1,300~1,700개 데이터)에서 데이터 조정만으로는 일정 구간을 벗어나기 어렵다는 것을 시사한다. 이에 **v5를 최종 모델로 확정**했다.
+RTX 3060 12GB 단일 GPU 환경에서 Qwen2.5-Coder-7B-Instruct를 QLoRA로 파인튜닝하고, 데이터·프롬프트를 한 번에 한 변수씩 변경하며 성능 변화를 정량 측정했다. 논문 기반 데이터 선별 전략(IFD + K-Means)으로 v5를 만든 뒤, DPO·LoRA rank 증대·데이터 정제·데이터 규모 확장·중복 제거(v9)까지 총 6가지 추가 개선을 시도했다. **30문제로 평가셋을 확장한 결과 v5, v8, v9는 통계적으로 동급(43~57%) 성능**이었고, 이는 현재 조건(7B 모델, 1,300~1,700개 데이터)에서 데이터 조정만으로는 일정 구간을 벗어나기 어렵다는 것을 시사한다. 이에 **v5를 최종 모델로 확정**했고, 자체 구현한 OpenAI 호환 서버(`serve_v5.py`)로 실제 [ai-coding-test-assistant](https://github.com/HyeonBin0118/ai-coding-test-assistant)에 연결해 GPT-4o-mini와 토글 가능한 구조까지 완성했다.
 
 > 실험 설계 의도, 실패 분석, 회고 등 상세 기록은 [PLAN.md](./PLAN.md) 참조.
 
@@ -271,6 +271,35 @@ DPO, v6, v7, v8, v9, repetition_penalty까지 6가지 추가 개선을 시도한
 
 ---
 
+## 실제 적용 — [ai-coding-test-assistant](https://github.com/HyeonBin0118/ai-coding-test-assistant) 연동
+
+v5를 단순 평가로 끝내지 않고, GPT-4o-mini로 동작하던 다른 프로젝트(ai-coding-test-assistant)에 실제로 연결해 "Provider 전환 가능"한 구조까지 완성했다.
+
+### 시도: vLLM 서버 → 한계 → 자체 구현으로 전환
+
+로컬 모델을 OpenAI 호환 API로 서빙하는 가장 표준적인 방법은 vLLM이다. LoRA 어댑터를 베이스 모델에 merge한 뒤 AWQ로 4bit 양자화해서 vLLM에 올리는 계획을 세웠으나, `autoawq` 설치 단계에서 빌드 의존성 문제로 막혔다. vLLM/AutoAWQ 생태계 자체가 Linux/WSL2 기준으로 만들어져 있어, Windows 네이티브 환경에서는 의존성 컴파일이 근본적으로 불안정하다는 것을 확인했다.
+
+이후 단계(vLLM의 CUDA 커널 컴파일)에서도 같은 종류의 문제가 반복될 것이 명확해, vLLM 도입을 포기하고 직접 OpenAI 호환 레이어를 구현하는 방향으로 전환했다.
+
+### 해결: `serve_v5.py` — 경량 자체 구현 서버
+
+FastAPI로 `/v1/chat/completions` 엔드포인트 하나만 직접 구현한 경량 서버를 만들었다. 모델 로딩은 학습·평가 단계에서 이미 검증된 `transformers + bitsandbytes` 4bit 방식을 그대로 재사용해, 추가 컴파일 의존성이 전혀 없다. 동기 호출(`/v1/chat/completions`)과 SSE 스트리밍을 모두 OpenAI 응답 형식에 맞춰 구현했다.
+
+```bash
+python serve_v5.py
+# http://localhost:8001/v1/chat/completions 에서 OpenAI 호환 형식으로 응답
+```
+
+ai-coding-test-assistant 쪽에서는 기존 `BaseLLMClient` 추상화를 그대로 활용해 `LocalClient`만 추가했다. `AsyncOpenAI(base_url=...)`는 엔드포인트가 OpenAI 형식만 지키면 어떤 서버든 호출할 수 있어서, vLLM이든 직접 만든 서버든 클라이언트 코드는 동일하다. `.env`의 `LLM_PROVIDER` 값(`openai` / `local`)만 바꾸면 GPT-4o-mini와 v5가 토글된다.
+
+### 기본값 정책
+
+v5의 코드 정답률(43~57%)이 GPT-4o-mini보다 낮다는 것을 이미 30문제 평가로 확인했기 때문에, ai-coding-test-assistant의 **기본 Provider는 `openai`로 유지**했다. `local`은 무료/오프라인 동작과 "Provider 전환 가능한 아키텍처"를 보여주는 옵션으로 남겨뒀다. 성능이 부족한 모델이라도 무리하게 기본값으로 밀어넣지 않고, 검증된 사실에 맞게 위치를 정한 것이다.
+
+상세 연동 과정은 [ai-coding-test-assistant README](https://github.com/HyeonBin0118/ai-coding-test-assistant#7-llm-provider-확장-자체-파인튜닝-모델-연동) 참조.
+
+---
+
 ## 프로젝트 구조
 
 ```
@@ -314,6 +343,7 @@ coder-llm-finetune/
 │   ├── train_v9.py                 # v9 학습 (중복 제거 + 경량 정제)
 │   └── train_v5_repro.py           # v5 재현 실험
 ├── select_30_problems.py           # 30문제 평가셋 선정
+├── serve_v5.py                      # v5를 OpenAI 호환 API로 서빙하는 경량 서버
 ├── patch.py                        # trl 인코딩 패치 (Windows)
 ├── requirements.txt
 └── PLAN.md                         # 실험 설계·회고 상세 기록
@@ -403,6 +433,11 @@ python train_scripts/train_v9.py
 
 # v5 vs v8 vs v9 최종 30문제 비교
 python evaluation_scripts/compare_v5_v8_v9_30problems.py
+
+# v5를 OpenAI 호환 API로 서빙 (ai-coding-test-assistant 연동용)
+python serve_v5.py
+# http://localhost:8001/v1/chat/completions 에서 호출 가능
+# ai-coding-test-assistant 쪽 .env에서 LLM_PROVIDER=local 설정 시 자동 연결
 ```
 
 ---
